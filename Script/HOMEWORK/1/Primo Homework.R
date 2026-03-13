@@ -1,0 +1,637 @@
+# ---     PRIMO HOMEWORK  ---
+
+### ESERCIZIO 1.: Risolvi i seguenti esercizi:
+
+## 1.a: Mostra a schermo una sequenza di numeri naturali da 20 a 50
+sequenza_naturali <- seq(20, 50)  # Usiamo seq() per creare la sequenza
+print(sequenza_naturali)          # Stampa la sequenza
+
+## 1.b: Mostra a schermo una sequenza di numeri razionali da 20 a 50, intervallati con distanza 0.01
+sequenza_razionali <- seq(20, 50, by = 0.01)    # Aggiungiamo by = 0.01, per indicare il passo
+print (sequenza_razionali)                      # Stampa la sequenza
+
+## 1.c: Salva in un vettore chiamato "sum" la somma dei numeri trovati al punto b, ed in "mean" la loro media
+sum_value <- sum(sequenza_razionali)      # Calcolo la somma 
+print(sum_value)
+mean_value <- mean(sequenza_razionali)    # Calcolo la media
+print(mean_value)
+
+
+### ESERCIZIO 2: Crea una funzione che calcola i primi n numeri di Fibonacci:
+fibonacci <- function(n){
+  # Controllo se n è minore o uguale a 0
+  if (n <= 0) {           
+    return(numeric(0))    # Output: Vettore vuoto
+  }
+  
+  # Se n è 1, restituisce solo 0
+  if (n == 1){            
+    return(c(0))          
+  }
+  
+  # Inizializzo il vettore con i primi due numeri
+  fib <- numeric(n)
+  fib[1] <- 0
+  fib[2] <- 1
+  
+  # Calcolo i successivi
+  for (i in 3:n){
+    fib[i] <- fib[i-1] + fib[i-2]
+  }
+  
+  return(fib)           # Restituisce il vettore completo
+}
+
+# Esempio con i primi 10 numeri
+fibonacci (10)
+
+
+## 2.a: Estendiamo la funzione di Fibonacci, restituendo anche la MEDIA e la SOMMA.
+fibonacci_info <- function(n){
+  # Se n è minore o uguale a 0, restituisce un vettore vuoto
+  if (n <= 0) {           
+    return(list(Sequenza = numeric (0), Somma = NA, Media = NA))    
+  }
+  
+  # Se n è 1, restituisce solo 0
+  if (n == 1){            
+    return(list(Sequenza = c(0), Somma = 0, Media = 0))          
+  }
+  
+  # Inizializzo il vettore con i primi due numeri
+  fib <- numeric(n)
+  fib[1] <- 0
+  fib[2] <- 1
+  
+  # Calcolo i successivi
+  for (i in 3:n){
+    fib[i] <- fib[i-1] + fib[i-2]
+  }
+  
+  # Calcolo Somma e media
+  somma <- sum(fib)
+  media <- mean(fib)
+  
+  # Restituisce tutti i risultati come una lista
+  return(list(Sequenza = fib, Somma = somma, Media = media))
+}
+
+# Esempio con i primi 10 numeri
+fibonacci_info (10)
+
+
+
+### ESERCIZIO 3: Crea una lista che contenga al suo interno un vettore di numeri casuali fra 0 e 10,
+#               una matrice ed una lista di 3 cantanti. Poi assegna un nome per ogni elemento della lista.
+#               Ad esempio ("Numeri", "Lista", "Cantanti").
+
+
+# Vettore di numeri casuali fra 1 e 10
+numeri_casuali <- sample(1:10, size = 5, replace = TRUE)
+
+# Creo la matrice 2x2 riempiendola con numeri random
+matrice <- matrix(1:4, nrow = 2, ncol = 2)
+
+# Lista di 3 cantanti
+cantanti <- list("Rossini", "Mozart", "Beethoveen" )
+
+# Creo la lista finale
+mia_lista <- list(
+  Numeri = sample(1:10, size = 5, replace = TRUE),
+  Matrice = matrix(1:4, nrow = 2, ncol = 2),
+  Cantanti = c("Rossini", "Mozart", "Beethoveen"))
+
+# Visualizzo la lista
+print(mia_lista)
+
+
+### ESERCIZIO 4: Considera il dataframe Life.csv. Importa il dataset e svolgi i seguenti punti:
+
+# Importazione dataset
+life <- read.csv("Life.csv", stringsAsFactors = FALSE) 
+
+# Visualizzo il dataset
+View(life)
+
+## 4.a: 1) Di che tipo sono le variabili?    
+#       2) Alcune di esse possono essere considerate come dei fattori?
+
+str(life)     # Vedo la struttura del dataset
+
+# - DOMANDA 1: - country_code: E' un character;
+#              - country_name: E' un character;
+#              - year: E' un integer;
+#              - value: E' un numerico;
+
+# - DOMANDA 2: Si! Sarebbe corretto trasformare in factor: - country_code;  
+#                                                          - country_name;     
+#              in quanto sono variabili categoriali.
+
+# Converto le variabili in "factor":
+life$country_code <- as.factor(life$country_code)
+life$country_name <- as.factor(life$country_name)
+
+# Ricontrollo la struttura dopo la conversione
+str(life)
+
+
+## 4.b: 1) Ci sono delle osservazioni mancanti? 2) Cosa faresti per risolvere il problema?   
+
+# DOMANDA 1: Ci sono delle osservazioni mancanti?
+
+# Verifico se esistono valori NA nel dataset
+anyNA(life)
+
+# Calcolo quanti valori NA ci sono in totale
+sum(is.na(life))
+
+# Calcolo i valori NA per ogni variabile
+colSums(is.na(life))
+
+# DOMANDA 2: Cosa faresti per risolvere il problema?
+
+# Sostituisco  i valori 9999 con NA nella colonna "value"
+life$value[life$value == 9999] <- NA
+
+# Verifico nuovamente se ci sono NA (dopo la sostituzione)
+anyNA(life)
+
+# Rimuovo le righe con valori NA
+life_clean <- na.omit(life)
+
+# Verifico che il Dataframe sia pulito
+str(life_clean)
+
+
+## 4.c: Quante osservazioni ci sono per ogni stato? E per ogni anno? 
+#       Svolgi delle opportuni modifiche al data frame per effettuare delle analisi coerenti.
+
+# Conto il numero di osservazioni per ogni stato
+oss_stato <- table(life_clean$country_name)
+print(oss_stato)
+
+# Conto il numero di osservazioni per ogni anno
+oss_anno <- table(life_clean$year)
+print(oss_anno)
+
+# Per la maggior parte degli stati, ci sono 61 osservazioni.
+# Per Fiji, Finlandia e Zimbabwe ci sono meno osservazioni.
+# Per gli anni: 15 osservazioni per 1960-1963, 14 osservazioni per 1964-2010, 16 osservazioni per 2011-2020.
+
+
+## 4.d: Calcola la media dell'aspettativa di vita per l'Australia. 
+#       Come si potrebbe confrontarla con quella degli altri Stati?
+
+
+# Calcolo la media della variabile "value" per l'Australia
+media_aus <- mean(life_clean$value[life_clean$country_name == "Australia"])
+
+# Visualizzo il risultato
+print(media_aus)
+
+# Carico la libreria dplyr
+install.packages("dplyr")
+library(dplyr)
+
+# Calcolo la media dell'aspettativa di vita per tutti i Paesi
+medie_paesi <- life_clean %>%
+  group_by(country_name) %>%
+  summarise(media = mean(value, na.rm = TRUE))
+
+# Ordino i paesi per media decrescente
+medie_paesi_ordinate <- medie_paesi %>% arrange(desc(media))
+
+# Visualizzo la classifica
+print(medie_paesi_ordinate)
+
+# L'Australia risulta tra i primi paesi con la media più alta dell'aspettativa di vita.
+
+# Carico la libreria ggplot2, per visualizzare il grafico
+install.packages("ggplot2")
+library(ggplot2)
+
+# Creo il grafico:
+
+ggplot(medie_paesi, aes(x = reorder(country_name, media), y = media)) +
+  geom_bar(stat = "identity", fill = "grey") +
+  coord_flip() +   # Ruota il grafico per una lettura più comoda
+  theme_minimal() +
+  labs(
+    title = "Media dell'aspettativa di vita per Paese",
+    x = "Paese",
+    y = "Media aspettativa di vita"
+  ) +
+  geom_bar(data = subset(medie_paesi, country_name == "Australia"),
+           aes(x = country_name, y = media),
+           stat = "identity", fill = "red")
+
+
+### ESERCIZIO 5: Costruisci una matrice 2x3 composta da multipli di 2
+valori <- seq (2, 12, by = 2)                 # Creo i multipli di 2 fino a 12
+matrice <- matrix(valori, nrow = 2, ncol = 3) # Creo la matrice 2 x 3
+print(matrice)
+
+## 5.a: Che cosa succede usando il comando is.matrix? E il comando is.array?
+is.matrix(matrice) # Verifico se la matrice è una matrice.  Output = TRUE
+is.array(matrice)  # Verifico se la matrice è un array.     Output = TRUE         
+
+### INFO ###:
+# is.matrix: Controlla se l'oggetto è una matrice. E' TRUE perchè e una matrice
+# is.array: Controlla se l'oggetto è un array. E' TRUE perchè in R 
+#           le matrici sono considerate un caso particolare di array
+
+
+## 5.b: Estrai la 3 colonna da questa matrice, chiamando l'oggetto estratto b. Che tipo di oggetto è?
+b <- matrice [, 3]  # Estraggo la terza colonna della matrice    
+print(b)            # Mostro l'oggetto estratto
+class(b)            # Verifico il tipo di oggetto. Output: Vettore (numeric)
+  
+
+## 5.c: Converti b in matrice.
+b_matrice <- as.matrix(b)    # Converto 'b' in matrice
+print(b_matrice)             # Mostra l'oggetto convertito
+class(b_matrice)             # Verifico il tipo di oggetto
+
+### ESERCIZIO 6: Il file ‘nazioni.csv’ contiene informazioni su 105 Nazioni 
+#                e per ognuna di esse riporta:  
+#             – areaGeo: la regione geografica
+#             – reddito: il reddito pro capite in dollari
+#             – infmort: il tasso di mortalità infantile (morti ogni 100 nascite)
+#             – oil: se il paese esporta petrolio (1: no; 2: sì)
+
+
+## 6.a: Caricare i dati nello spazio di lavoro in un data frame chiamato “nazioni”, 
+#     stampare il numero di righe dell’oggetto importato ed il nome delle variabili.
+
+# Carico il dataset
+nazioni <- read.csv("nazioni.csv", stringsAsFactors = FALSE) 
+
+# Visualizzo il data frame
+View(nazioni)
+
+# Stampo il numero di righe                                                
+numero_righe <- nrow(nazioni) 
+print(numero_righe)
+
+# Stampo i nomi delle variabili                                               
+nomi_variabili <- names(nazioni)  
+print(nomi_variabili)
+
+### INFO ###:
+# read.csv: Importa i dati senza trasformare subito i testi in fattori
+# nrow: Restituisce il numero di RIGHE del dataset
+# names: Mostra i NOMI DELLE COLONNE (le variabili del dataset)
+
+## 6.b: Stampare il vettore con il numero di valori mancanti presenti in ogni variabile.
+
+# Calcolo il numero di valori mancanti per ogni variabile
+valore_mancante <- colSums(is.na(nazioni))
+
+# Stampa risultato  
+print(valore_mancante)   
+
+### INFO ###:
+# is.na(): Restituisce un dataframe di valori logici (TRUE o FALSE), dove TRUE 
+#          indica che il valore è mancante.
+# colSums(is.na()): Somma i valori TRUE per ogni colonna, 
+#                   dandoci il numero di valori mancanti per ciascuna variabile.
+
+## 6.c: Ottenere il nome dei Paesi in cui sono presenti valori mancanti.
+
+# Seleziona le righe con almeno un valore mancante
+paesi_con_na <- nazioni[!complete.cases(nazioni), ]
+
+# Estrai i nomi dei Paesi con valori mancanti
+paesi_con_na_nome <- paesi_con_na$nome
+
+# Stampa i nomi dei Paesi con valori mancanti
+print(paesi_con_na_nome)
+
+### INFO ###:
+# !complete.cases(): Restituisce un vettore logico che indica:
+#                    FaLSE: Righe senza NA,      TRUE: Righe con almeno un NA
+# paesi_con_na$nome: Estrae solo i nomi dei Paesi da queste righe filtrate.
+# nazioni[!()]: Crea un nuovo dataframe con le righe che hanno NA
+
+
+## 6.d: Eliminare i valori mancanti dal data set.
+
+# Elimino tutte le righe con almeno un valore mancante
+nazioni <- na.omit(nazioni)
+
+# Controllo che non ci siano più valori mancanti
+print(colSums(is.na(nazioni)))
+
+# Visualizzo di nuovo il dataset pulito
+View(nazioni)
+
+### INFO ###:
+# na.omit(): Crea una versione pulita del dataset, togliendo tutte le righe che avevano NA.
+# colSums(): Mi permette di verificare che tutti i valori 
+#            sono completi (tutte le colonne devono risultare con 0 NA)
+
+
+## 6.e: Ottenere la distribuzione delle frequenze percentuali della variabile ‘areaGeo’ 
+#      ed ordinarle in ordine decrescente.
+
+# Calcolo le frequenze assolute di areaGeo
+frequenze_assolute <- table(nazioni$areaGeo)
+print(frequenze_assolute)
+
+# Calcolo le frequenze percentuali
+frequenze_percentuali <- prop.table(frequenze_assolute) * 100
+print(frequenze_percentuali)
+
+# Ordino le frequenze percentuali in ordine decrescente
+frequenze_percentuali_ordinate <- sort(frequenze_percentuali, decreasing = TRUE)
+print(frequenze_percentuali_ordinate)
+
+# Controlla che la somma sia 100
+sum(frequenze_percentuali_ordinate)
+
+### INFO ###:
+# table(): Conta quante volte compare in ogni area geografica
+# prop.table() * 100: Trasforma le frequenze assolute in percentuali
+# sort(): Ordina le percentuali dal valore più grande al più piccolo
+
+
+## 6.f: Convertire la variabile areaGeo in factor ordinando i livelli secondo l’ordine 
+#     ottenuto al punto precedente. Salvare il factor come nuova variabile del 
+#     data frame chiamata areaGeofact ed eliminare la variabile areaGeo.
+
+# Creo un factor per areaGeo con i livelli nell'ordine delle frequenze
+nazioni$areaGeofact <- factor(nazioni$areaGeo, 
+                              levels = names(frequenze_percentuali_ordinate))
+# Verifico il nuovo factor
+print(levels(nazioni$areaGeofact))
+
+# Elimino la variabile areaGeo
+nazioni$areaGeo <- NULL
+
+# Visualizza il data frame aggiornato
+View(nazioni)
+
+### INFO ###:
+# factor(): Crea il factor con i livelli ordinati
+# names (): Sono appunto i nomi, nell'ordine corretto
+# nazioni$araFeo <- NULL: Elimina la colonna vecchia dal data frame
+
+
+## 6.g: Convertire la variabile oil in factor utilizzando i livelli: “no” e “yes”.
+#      Sovrascrivere la variabile oil già presente nel data.frame.
+
+# Ricodifico la variabile oil in factor con livelli "no" e "yes"
+nazioni$oil <- factor(nazioni$oil,
+                      levels = c(1, 2),
+                      labels = c("no", "yes"))
+
+# Controllo i livelli del nuovo factor oil
+print(levels(nazioni$oil))
+
+# Visualizzo i primi dati per confermare la modifica
+head(nazioni)
+
+### INFO ###:
+# levels = c(): Specifica che 1 = no e 2 = yes
+# labels = c(): Assegna le etichette testuali corrette
+# In questo modo sovrascrivo direttamente nazioni$oil, senza creare una nuova colonna
+# Dopo la modifica con head(), controllo se i valori sono cambiati da numeri a parole
+
+
+## 6.h: Quali Paesi esportano petrolio e in quali regioni si trovano? 
+#      Stampare il risultato in due colonne.
+
+# Seleziono i paesi che esportano petrolio
+esportatori_petrolio <- nazioni[nazioni$oil == "yes", c("nome", "areaGeofact")]
+
+# Stampo il risultato
+print(esportatori_petrolio)
+
+# Visualizzo in modo più comodo
+View(esportatori_petrolio)
+
+### INFO ###:
+# nazioni$oil == "yes": Seleziona solo i paesi che esportano petrolio
+# c("nome", "areaGeofact"): Indica che voglio vedere solo due colonne
+
+
+# 6.i: Calcolare il tasso di mortalità infantile medio in ogni area geografica.
+
+# Calcolo la media del tasso di mortalità per ogni area geografica
+mortalita_media <- tapply(nazioni$infmort, nazioni$areaGeofact, mean)
+
+# Stampo il risultato
+print(mortalita_media)
+
+### INFO ###:
+# tapply(x, gruppo, funzione): - x: Variabile da analizzare (infmort).
+#                              - gruppo: Variabile per suddividere (areaGeofact).
+#                              - funzione = mean: Cioè vogliamo la media.
+# tapply() applica la media separatamente a ciascun gruppo di areaGeofac
+
+
+# 6.j: Quante nazioni hanno un tasso di mortalità infantile superiore o uguale a 300?
+
+# Conta quante nazioni hanno un tasso di mortalità infantile ≥ 300
+nazioni_infmort_300 <- sum(nazioni$infmort >= 300)
+
+# Stampa il risultato
+print(paste("Numero di nazioni con mortalità infantile ≥ 300:", nazioni_infmort_300))
+
+### INFO ###:
+# nazioni$infmort >= 300: Seleziona solo le nazioni con mortalità superiore o uguale a 300
+# nrow(): Conta quante righe (= nazioni)
+# cat(): Mostra i nomi di queste nazioni.
+
+# 6.k: Quante delle nazioni identificate al punto 6.j esportano petrolio?
+
+# Conta quante nazioni con mortalità infantile ≥ 300 esportano petrolio
+nazioni_petrolio_infmort_300 <- sum(nazioni$infmort >= 300 & nazioni$oil == "yes")
+
+# Stampa il risultato
+print(paste("Numero di nazioni con mortalità infantile ≥ 300 che esportano petrolio:", nazioni_petrolio_infmort_300))
+
+### INFO ###:
+#nazioni$infmort...: Questa condizione combina due verifiche: una per il tasso di mortalità 
+#                    infantile e l'altra per l'esportazione di petrolio. 
+#                    Restituisce TRUE solo per le righe che soddisfano entrambe le condizioni.
+
+# sum(...): Somma i valori TRUE per contare quante nazioni soddisfano entrambe le condizioni.
+
+
+
+## 6.l: Dividere la finestra grafica in 2 righe e 2 colonne. In ogni spazio, 
+#       rappresentare con un boxplot la distribuzione della mortalità infantile 
+#       condizionata alla regione geografica. Impostare lo stesso range sull’asse y 
+#       ed il titolo del grafico.
+
+# Divido la finestra grafica in due righe e due colonne
+par(mfrow = c(2, 2))
+
+# Imposto il range fisso per l'asse y
+limiti_y <- range(nazioni$infmort)
+
+# Boxplot Africa
+boxplot(infmort ~ areaGeofact, data = subset(nazioni, areaGeofact == "Africa"),
+        ylim = limiti_y, main = "Africa", ylab = "Mortalità infantile")
+
+# Boxplot Asia
+boxplot(infmort ~ areaGeofact, data = subset(nazioni, areaGeofact == "Asia"),
+        ylim = limiti_y, main = "Asia", ylab = "Mortalità infantile")
+
+# Boxplot Americas
+boxplot(infmort ~ areaGeofact, data = subset(nazioni, areaGeofact == "Americas"),
+        ylim = limiti_y, main = "Americas", ylab = "Mortalità infantile")
+
+# Boxplot Europe
+boxplot(infmort ~ areaGeofact, data = subset(nazioni, areaGeofact == "Europe"),
+        ylim = limiti_y, main = "Europe", ylab = "Mortalità infantile")
+
+# Titolo generale sopra tutti i boxplot
+mtext("Distribuzione della mortalità infantile per area geografica", outer = TRUE, line = -2, cex = 1.2)
+
+# Resetto la finestra grafica normale
+par(mfrow = c(1, 1))
+
+### INFO ###:
+# par(): Divide lo spazio grafico in 2 righe e 2 colonne
+# range (): Trova il minimo e massimo dei valori di mortalità, così tutti i boxplot hanno lo stesso asse y
+# subset(): Seleziona solo i dati di una certa area
+# Ogni boxplot() ha il suo titolo (main) e etichetta y (ylab).
+
+# Alla fine, par(mfrow = c(1, 1)) ripristina la finestra grafica normale 
+# (importantissimo dopo aver fatto grafici multipli!).
+
+
+## 6.m: Rappresentare con un istogramma la distribuzione del reddito. Modificare 
+#       l’etichetta dell’asse x con il nome della variabile ed eliminare il titolo.
+hist(nazioni$reddito,
+     xlab = "Reddito Pro capite",      # Etichetta asse x
+     main = "",                        # Niente titolo
+     col= "lightblue",    
+     border= "black")
+
+### INFO ###:
+# hist(): Crea l'istogramma della variabile reddito
+# xlab = "Reddito": Imposta il testo sull'asse orizzontale
+# main = "": Elimina il titolo
+# col = "" e border = "": sono aggiunte estetiche
+
+
+## 6.n: Aggiungere al grafico precedente le mediane del reddito per area geografica 
+#       utilizzando dei punti di colore diverso.
+
+
+# Ridisegno l'istogramma come prima
+hist(nazioni$reddito,
+     xlab = "Reddito",
+     main = "",
+     col = "lightblue",
+     border = "black")
+
+# Calcolo la mediana del reddito per ogni area geografica
+mediane_reddito <- tapply(nazioni$reddito, nazioni$areaGeofact, median)
+
+# Stampo le mediane per sicurezza
+print(mediane_reddito)
+
+# Aggiungo i punti delle mediane sull'istogramma
+points(mediane_reddito,
+       y = rep(0, length(mediane_reddito)),        # Metto i punti alla base (altezza 0)
+       col = c("red", "blue", "green", "purple"),  # Colori diversi
+       pch = 19,                                   # Tipo di punto: cerchietto pieno
+       cex = 1.5)                                  # Dimensione del punto
+
+### INFO ###:
+# tapply(...): Calcola la mediana del reddito per ciascuna area geografica
+# points(): Aggiunge i punti sull'istogramma:  - y = 0: Perché li voglio alla base dell'istogramma.
+#                                              - col = c(): Per usare colori diversi.
+#                                              - pch = 19: Fa i punti pieni
+#                                              - cex = 1.5: Ingrandisce i punti
+
+## 6.o: Dividere la variabile reddito in classi utilizzando le seguenti categorie: 
+#      “fino a 500”, “(500, 1500]”, “(1500, 4000]”, “4000 e più”. 
+#       Salvare la nuova variabile in un oggetto chiamato redditoCat.
+
+# Creo la variabile redditoCat
+nazioni$redditoCat <- cut(nazioni$reddito,
+                          breaks = c(0, 500, 1500, 4000, Inf),
+                          labels = c("fino a 500", "(500, 1500]", "(1500, 4000]", "4000 e più"),
+                          right = TRUE)
+
+# Visualizzo le prime righe per confermare
+head(nazioni[, c("nome", "reddito", "redditoCat")])
+
+# Barplot delle categorie di reddito
+barplot(table(nazioni$redditoCat),
+        main = "Distribuzione categorie di reddito",
+        col = "skyblue",
+        ylab = "Numero di nazioni",
+        xlab = "Categorie di reddito")
+
+### INFO ###:
+# cut(): Divide i valori di reddito secondo i limiti.
+# labels = ...: Specifica il nome di ciascuna categoria.
+# right = TRUE: Significa che l’intervallo include il bordo superiore.
+
+## 6.p: Quante nazioni sono nella categoria “4000 e più”? E qual è la loro 
+#      distribuzione per area geografica?
+
+# Conta e mostra la distribuzione delle nazioni con reddito ≥ 4000 per area geografica
+distribuzione_areaGeo <- table(nazioni$areaGeofact[nazioni$redditoCat == "4000 e più"])
+
+# Stampa il risultato
+print(distribuzione_areaGeo)
+
+# Calcola le percentuali
+percentuali <- round(100 * distribuzione_areaGeo / sum(distribuzione_areaGeo), 1)
+
+# Barplot a torta con percentuali
+pie(distribuzione_areaGeo,
+    labels = paste(percentuali, "%"),
+    main = "Distribuzione area geografica\n(nazioni con reddito > 4000)",
+    col = rainbow(length(distribuzione_areaGeo)))
+
+# Aggiungo una legenda separata
+legend("topright",
+       legend = names(distribuzione_areaGeo),
+       fill = rainbow(length(distribuzione_areaGeo)))
+
+### INFO ###:
+# table([]): Filtra direttamente il dataframe per le nazioni con reddito ≥ 4000 
+#            e calcola la distribuzione delle aree geografiche in un'unica riga di codice.
+
+
+
+## 6.q: Stampare le distribuzioni condizionate della variabile redditoCat rispetto 
+#       all’esportazione di petrolio approssimandole a 2 cifre decimali.
+
+# Creo una tabella di contingenza redditoCat vs oil
+tabella_reddito_oil <- table(nazioni$redditoCat, nazioni$oil)
+
+# Calcolo le percentuali per ogni categoria di reddito
+percentuali_reddito_oil <- prop.table(tabella_reddito_oil, margin = 1) * 100
+
+# Arrotondo le percentuali a 2 cifre decimali
+percentuali_reddito_oil <- round(percentuali_reddito_oil, 2)
+
+# Stampo la tabella finale
+print(percentuali_reddito_oil)
+
+# Grafico a barre impilate redditoCat vs oil
+barplot(tabella_reddito_oil,
+        beside = FALSE,
+        legend.text = TRUE,
+        col = c("lightcoral", "lightgreen"),
+        main = "Esportazione petrolio per categoria di reddito",
+        ylab = "Numero di nazioni",
+        xlab = "Categoria di reddito")
+### INFO ###:
+# table(): Crea una tabella incrociata tra categoria di reddito e petrolio.
+# prop.table(): Calcola la percentuale riga per riga (quindi ogni riga fa il 100%).
+# round(): Arrotonda ogni valore a 2 cifre decimali.
+
+
+
+
+

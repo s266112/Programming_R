@@ -1,0 +1,273 @@
+---
+title: "Terzo homework"
+author: "Alessio Matessi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Carico le librerie necessarie
+library(tidyverse)
+library(cluster)
+library(factoextra)
+```
+
+#### *ESERCIZIO 1: Si svolga un’analisi di raggruppamento usando una delle tecniche presentate nel corso. Valutate: - eventuale pulizia dei dati - l’uso di opportune trasformazioni - fornite misure della qualità dei cluster ottenuti*
+
+#### *L'obiettivo di questo esercizio è raggruppare i paesi in base a indicatori sanitari e demografici utilizzando il metodo di clustering k-means*.
+
+
+
+##### **1.Carico il dataset**
+```{r}
+# Importo il file CSV con encoding compatibile
+df <- read.csv("UNLifeExpectancy.csv", fileEncoding = "latin1")
+
+# Visualizzo le prime righe
+head(df)
+
+# Vedo la struttura: tipi di variabili e presenza di NA
+str(df)
+
+# Statistiche descrittive generali
+summary(df)
+```
+
+
+##### **2.Pulisco il dataset**
+```{r}
+# Conto i NA per ogni colonna
+colSums(is.na(df))
+
+# Seleziono solo le colonne numeriche con pochi NA
+# Scelgo: LIFEEXP, ILLITERATE, POP, FERTILITY, PRIVATEHEALTH,
+# HEALTHEXPEND, PHYSICIAN, GDP
+
+dati <- df %>%
+  select(COUNTRY, LIFEEXP, ILLITERATE, POP, FERTILITY,
+         PRIVATEHEALTH, HEALTHEXPEND, PHYSICIAN, GDP)
+
+# Rimuovo le righe con NA
+dati_clean <- na.omit(dati)
+
+# Rimuovo anche la colonna COUNTRY (solo per il clustering)
+dati_cluster <- dati_clean %>% select(-COUNTRY)
+
+# Standardizzo le variabili (media 0, deviazione standard 1)
+dati_scaled <- scale(dati_cluster)
+
+# Visualizzo le prime righe normalizzate
+head(dati_scaled)
+
+## SPIEGAZIONE: Seleziono variabili numeriche, rimuovo i NA e normalizzo i dati per il clustering.
+```
+
+
+##### **3.Scelta del numero di Cluser (metodo del gomito)**
+```{r}
+# Calcolo del metodo Elbow usando fviz_nbclust
+set.seed(123)  # per risultati ripetibili
+
+fviz_nbclust(dati_scaled, kmeans, method = "wss") +
+  labs(title = "Metodo del gomito per scegliere il numero di cluster",
+       x = "Numero di cluster (k)",
+       y = "Somma dei quadrati intra-cluster (WSS)")
+
+## SPIEGAZIONE: Uso il metodo del gomito per trovare il numero ottimale di cluster.
+```
+
+
+##### **4.K-means e asseganzione dei gruppi**
+```{r}
+# Applicco k-means con 3 cluster
+set.seed(123)  # per ripetibilità
+kmeans_res <- kmeans(dati_scaled, centers = 3, nstart = 25)
+
+# Aggiungo il numero di cluster al dataset pulito
+dati_clean$cluster <- as.factor(kmeans_res$cluster)
+
+# Visualizzo le prime righe con il cluster assegnato
+head(dati_clean)
+
+# Centroidi: valori medi (standardizzati) per ogni cluster
+kmeans_res$centers
+
+## SPIEGAZIONE: Applicco il k-means con 3 cluster e aggiungo i risultati al dataset. Visualizzo le prime righe e i centroidi.
+```
+
+
+##### **5.Visualizzazione grafica dei cluster**
+```{r}
+# Visualizzazione con PCA + colore per cluster
+fviz_cluster(kmeans_res, data = dati_scaled,
+             geom = "point",
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal(),
+             main = "Visualizzazione dei cluster (k = 3)")
+
+## SPIEGAZIONE: Uso PCA per visualizzare i cluster ottenuti con k-means.
+```
+
+
+##### **6. Misure di qualità dei Cluster**
+```{r}
+# Calcolo silhouette plot per i 3 cluster trovati
+silhouette_k3 <- silhouette(kmeans_res$cluster, dist(dati_scaled))
+
+# Visualizzo il grafico silhouette
+fviz_silhouette(silhouette_k3) +
+  labs(title = "Qualità dei cluster (k = 3) - Silhouette plot")
+
+## SPIEGAZIONE: Uso il silhouette plot per valutare la qualità dei cluster: più alto è il valore, meglio separati sono i gruppi.
+```
+
+
+##### **7.Analisi e interpretazione di cluster (k = 3)**
+```{r}
+# Aggiungo il cluster finale (k = 3) ai dati originali
+dati_clean$cluster_k3 <- as.factor(kmeans(dati_scaled, centers = 3, nstart = 25)$cluster)
+
+# Calcolo le medie delle variabili per ciascun cluster
+cluster_summary <- dati_clean %>%
+  group_by(cluster_k3) %>%
+  summarise(across(LIFEEXP:GDP, mean, na.rm = TRUE))
+
+# Visualizzo la tabella
+print(cluster_summary)
+
+# OPTIONAL: Mostro anche quanti paesi ci sono per ciascun cluster
+table(dati_clean$cluster_k3)
+
+## SPIEGAZIONE: Calcolo la media delle variabili per ciascun cluster e conto i paesi in ogni gruppo.
+```
+
+##### **L’analisi ha identificato 3 gruppi distinti di paesi, differenziati principalmente per aspettativa di vita, fertilità, spesa sanitaria e PIL. I risultati aiutano a comprendere le diverse condizioni socio-sanitarie globali.**
+
+
+
+#### *ESERCIZIO 2: Costruite un modello di regressione multipla ove il guadagno è la variabile risposta*.
+
+#### *In questo esercizio analizziamo quali fattori influenzano il guadagno individuale (`earn`) tramite modelli di regressione multipla.*
+
+
+
+##### **1.Carico il dataset**
+```{r}
+# Caricamento dati
+earnings <- read.csv("earnings.csv")
+
+# Prime righe del dataset
+head(earnings)
+
+# Controllo struttura
+str(earnings)
+
+# Valori mancanti per colonna
+colSums(is.na(earnings))
+
+# Statistiche descrittive
+summary(earnings)
+
+## SPIEGAZIONE: Importo il dataset e faccio una prima esplorazione con head(), str() e summary().
+```
+
+
+##### **2.Pulisco il dataset**
+```{r}
+# Copia del dataset originale
+df <- earnings
+
+# Rimuovo osservazioni con NA nelle colonne chiave
+df_clean <- df %>%
+  select(earn, age, height, male, education, smokenow, exercise) %>%
+  na.omit()
+
+# Controllo quanti casi sono rimasti
+nrow(df_clean)
+
+# Converto variabili categoriche in fattori
+df_clean$male <- as.factor(df_clean$male)
+df_clean$education <- as.factor(df_clean$education)
+df_clean$smokenow <- as.factor(df_clean$smokenow)
+df_clean$exercise <- as.factor(df_clean$exercise)
+
+# Verifica finale
+str(df_clean)
+
+## SPIEGAZIONE: Seleziono le variabili utili, rimuovo i NA e converto le categoriche in fattori.
+```
+
+
+##### **3.Regressione Multipla**
+```{r}
+# Costruisco il modello completo con tutte le variabili
+model_full <- lm(earn ~ age + height + male + education + smokenow + exercise, data = df_clean)
+
+# Riepilogo del modello
+summary(model_full)
+
+## SPIEGAZIONE: Creo il modello di regressione multipla con tutte le variabili disponibili.
+```
+
+
+##### **4.Valutazione del modello**
+```{r}
+# Visualizzo i residui
+par(mfrow = c(2, 2))
+plot(model_full)
+
+# Distribuzione dei residui
+hist(residuals(model_full),
+     main = "Distribuzione dei residui",
+     col = "lightgreen")
+
+# Verifica della normalità con QQ plot
+qqnorm(residuals(model_full))
+qqline(residuals(model_full), col = "red")
+
+## SPIEGAZIONE: Valuto la bontà del modello analizzando i residui (distribuzione e normalità).
+```
+
+
+
+##### **5.Regrssione con log(earn)**
+```{r}
+# Rimuovo eventuali osservazioni con earn <= 0 o NA
+df_log <- df_clean %>% filter(!is.na(earn), earn > 0)
+
+# Modello con log(earn) come variabile risposta
+model_log <- lm(log(earn) ~ age + height + male + education + smokenow + exercise, data = df_log)
+
+# Riepilogo del nuovo modello
+summary(model_log)
+
+# Diagnostica grafica
+par(mfrow = c(2, 2))
+plot(model_log)
+
+# Istogramma dei nuovi residui
+hist(residuals(model_log),
+     col = "lightblue", main = "Residui del modello log(earn)")
+
+# Q-Q plot dei nuovi residui
+qqnorm(residuals(model_log))
+qqline(residuals(model_log), col = "red")
+
+## SPIEGAZIONE: Applicco la regressione su log(earn) per migliorare la normalità dei residui e la qualità del modello.
+```
+
+
+##### **6. Selezione automatica del modello (uso AIC)**
+```{r}
+# Applico la selezione automatica (backward di default)
+model_pars <- step(model_log, direction = "both", trace = FALSE)
+
+# Riepilogo del modello finale selezionato
+summary(model_pars)
+
+## SPIEGAZIONE: Seleziono il miglior modello usando il criterio AIC con selezione automatica.
+```
+
+##### **Il modello finale selezionato conferma l’importanza dell’età, dell’istruzione e di alcune abitudini di vita nel determinare i guadagni. L’uso di `log(earn)` ha migliorato la distribuzione dei residui, rendendo il modello più robusto.**
+
