@@ -1,1 +1,1 @@
-print("Connessione stabilita!ghgvvc").
+print("Connessione stabilita!c").
