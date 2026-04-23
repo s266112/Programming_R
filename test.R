@@ -1,0 +1,1 @@
+print("Connessione stabilita!").
