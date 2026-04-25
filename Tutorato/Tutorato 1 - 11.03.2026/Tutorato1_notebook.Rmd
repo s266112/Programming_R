@@ -1,0 +1,147 @@
+---
+title: "Tutorato 1 - Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+# Esercizio 1
+
+Costruire il vettore composto dai numeri 2,5,8,9,1,0,3,10; poi:
+
+1.  sommare 3 a tutti gli elementi;
+2.  definire un nuovo vettore `y` composto dal quadrato di ogni elemento;
+3.  definire un nuovo vettore `z` ottenuto dividendo tutti gli elementi per la media del vettore.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 2
+
+Definire il vettore composto dai numeri 1,4,7,10,3,9,2,8; poi creare un vettore `y` tale per cui:
+
+-   se $x_i>5$, allora $y_i=x_i^2$;
+
+-   $y_i=x_i$ altrimenti.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 3
+
+Definire il vettore composto dai numeri 3,7,5,9,2,8,6,1; poi:
+
+1.  contare quanti elementi sono maggiori di 5 e la loro proporzione sul totale;
+2.  contare quanti elementi sono pari;
+3.  creare un nuovo vettore `y` che contenga gli elementi dispari.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 4
+
+Calcolare il prodotto scalare dei vettori $x=(1,2,3,4)$ e $y=(10,20,30,40)$.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 5
+
+Definire il vettore 5,12,7,20,3,15; poi:
+
+1.  estrarre gli elementi tra 5 e 15;
+2.  estrarre gli elementi multipli di 5;
+3.  definire il vettore `y` degli elementi maggiori della media.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 6
+
+Consideriamo la seguente matrice delle distanze (in km) tra quattro città italiane (non badate alla poca precisione dei dati...):
+
+$$
+D=\begin{pmatrix}    0 &246 &250 &478 \\    246 &0 &204 &394 \\    250 &204 &0 &232 \\    478 &394 &232 &0\end{pmatrix}
+$$
+
+dove le città sono, nell’ordine: Milano, Venezia, Firenze, Roma.
+
+1.  costruire la matrice in R e salvarla in un oggetto `D`;
+2.  assegnare i nomi delle citta alle righe e alle colonne;
+3.  estrarre la distanza tra Milano e Firenze;
+4.  trovare la citta piu vicina a Roma.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio 8
+
+Creare un data frame chiamato gatti con le seguenti variabili:
+
+-   nome: ”Lilly”, ”Buffy”, ”Scar”, ”Nala”
+
+-   colore: ”tigrato”, ”tigrato”, ”nero”, ”rosso”
+
+-   peso: 3.5, 4.2, 5.1, 4.5
+
+Poi:
+
+1.  trasformare la variabile colore in un factor;
+2.  contare quanti gatti ci sono per ciascun colore;
+3.  calcolare il peso medio dei gatti;
+4.  estrarre i gatti con peso maggiore di 4 kg.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+# Esercizio con Dataset
+
+Per prima cosa caricare il dataset `Studenti.RData`; poi svolgere i seguenti punti:
+
+i.  Esplorare il dataset usando funzioni come `head`, `str`, `summary`, etc.; che variabili contiene il dataset? Di che tipo sono?
+ii. Estrarre i voti dell’esame di statistica e calcolarne la media, il massimo ed il minimo;
+iii. Trovare:
+     -   gli studenti con voto di statistica superiore a 28;
+
+     -   gli studenti che studiano piu di 20 ore;
+
+     -   gli studenti di informatica con voto di programmazione superiore a 29.
+iv. Creare una nuova colonna chiamata media composta dalle medie tra i due esami di ciascun studente e trovare:
+    -   quale studente ha la media piu alta;
+
+    -   quanti studenti hanno media maggiore o uguale a 23 e minore o uguale a 28.
+v.  Trasformare in factor le variabili categoriali presenti nel dataset;
+vi. Contare il numero di studenti per corso e ricavare la media dei voti **per corso** e poi la media dei voti **per anno**;
+vii. Contare il numero di studenti per anno e corso; trovare:
+     -   quale anno ha piu studenti;
+
+     -   in quale corso ci sono piu studenti del terzo anno? E in generale?
+
+**BONUS** possiamo dire che gli studenti di informatica studiano pi\`u ora di quelli di statistica?
+
+## Svolgimento
+
+```{r}
+# to-do
+```

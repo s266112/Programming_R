@@ -1,0 +1,120 @@
+---
+title: "Tutorato 2"
+output:
+  pdf_document: default
+  html_document: default
+date: "2026-03-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Esercizio con Dataset
+
+## Parte A: esplorazione del dataset
+
+Vogliamo analizzare il dataset `mtcars` usando le funzioni del pacchetto `dplyr`.
+
+1.  Caricare ed esplorare il dataset;
+
+2.  Aggiungere una nuova colonna `car_name`, che contenga i nomi delle macchine (attualmente salvati come nome delle righe) e metterla in prima posizione;
+
+3.  Estrarre:
+
+    -   solo le colonne `mpg`, `hp` e `wt`;
+
+    -   tutte le colonne che iniziano per "d";
+
+    -   tutte le colonne **numeriche**.
+
+4.  Estrarre:
+
+    -   le auto che hanno più di 150 cavalli (`hp`);
+
+    -   le auto con consumo (`mpg`) maggiore di 25 e con peso (`wt`) inferiore a 3.
+
+5.  Ordinare:
+
+    -   le auto per `mpg` crescente;
+
+    -   le auto per `hp` decrescente;
+
+6.  Creare un nuovo data.frame, chiamato `mtcars_it`, ottenuto convertendo:
+
+    -   `mpg` (miglia per gallone) a km/l (kilometri/litro), sapendo che $1\text{ mpg}= 0.425144 \text{km/l}$. Definire tale colonna `consumo`;
+
+    -   `wt` (peso in migliaia di lb, quindi $1\text{ wt}=1000 \text{ lbs}$) a kg, sapendo che $1000 \text{ lbs}=453.592 \text{ kg}$. Definire tale colonna `peso`;
+
+    -   `disp` (cilindrata in *cubic inches*) a `l`, sapendo che $1 \text{ cubic inch}= 0.0163871 \text{ litri}$. Definire tale colonna `cilindrata`.
+
+    Questo nuovo data.frame (da usare nei punti successivi), deve contenere sia le variabili *vecchie* che quelle nuove.
+
+7.  Creare una nuova colonna `efficienza` definita come il rapporto tra `consumo` e `peso`;
+
+8.  Calcolare il consumo medio per numero di cilindri (`cyl`) e ordinare i gruppi per consumo medio decrescente;
+
+9.  Considerare solo le auto con più di 100 cavalli, poi raggruppare per numero di cilindri, calcolare la potenza media per ogni gruppo e ordinare i gruppi per potenza media decrescente.
+
+10. Definire una funzione che, dato un vettore, calcola e restituisce la mediana, i quartili e l'IQR e poi applicarla alla variabile `consumo`.
+
+11. Costruire la tabella di frequenza assoluta e relativa del numero di cilindri `cyl`. Qual è la modalità più frequente?
+
+12. Costruire una tabella a doppia entrata tra numero di cilindri `cyl` e numero di marce `gear`; calcolare poi le frequenze relative per riga: la distribuzione del numero di marce sembra cambiare al variare del numero di cilindri?
+
+```{r}
+# to-do
+```
+
+## Parte B: descrizione grafica
+
+1.  Rappresentare con un istogramma la variabile `consumo`; cosa possiamo dire della sua distribuzione?
+2.  Costruire un istogramma della variabile `peso` e sovrapporre la curva di densità;
+3.  Costruire un boxplot (per gruppi) della variabile `consumo` rispetto alla variabile `cyl`; sembrano esserci differenze tra i vari gruppi?
+
+```{r}
+# to-do
+```
+
+# 2. Esercizio con Dataset
+
+Caricare il dataset `Sport` (presente sia in formato `.csv` che `.RData`), poi:
+
+## Parte A: esplorazione del dataset
+
+1.  Esplorare il dataset: quante osservazioni e quante variabili contiene? Quali variabili sono numeriche e quali categoriali? Ci sono valori mancanti?
+
+Rispondere alle seguenti domande:
+
+a.  Qual è il numero medio di passi giornalieri nel dataset?
+
+b.  Qual è la frequenza cardiaca a riposo media dei soggetti che si allenano almeno tre volte alla settimana?
+
+c.  Qual è lo sport con il maggior numero di passi medi giornalieri?
+
+d.  Possiamo dire che gli individui che praticano corsa hanno una frequenza cardiaca media a riposo più bassa rispetto ad altri sport?
+
+e.  Considerando solo gli individui con più di 8000 passi giornalieri, qual è la frequenza cardiaca media a riposo per ciascun tipo di sport?
+
+f.  Se si esclude l'individuo con il numero massimo di passi giornalieri, come cambia la media dei passi giornalieri nel dataset?
+
+g.  Se definiamo una nuova variabile chiamata `indice_salute`, definita come il rapporto tra passi giornalieri e frequenza cardiaca a riposo, quali sono i tre individui con il valore più alto di questo indice? Che sport praticano?
+
+h.  Possiamo affermare che gli individui che si allenano più frequentemente tendono ad avere una frequenza cardiaca a riposo più bassa?
+
+i.  Costruire le tabelle di frequenza assoluta e relativa della variabile `sport`; qual è lo sport più praticato?
+
+j.  Creare una variabile che distingua tra colore che si allenano almeno 3 giorni alla settimana e coloro che si allenano meno frequentemente, poi costruire una tabella a doppia entrata tra questa nuova variabile e `sport`. Calcolare poi le frequenze relative e commentare se lo sport praticato sembra associato alla frequenza di allenamento.
+
+```{r}
+# to-do
+```
+
+## Parte B: descrizione grafica
+
+1.  Costruire un istogramma della variabile `passi_giornalieri` e commentare l'eventuale presenza di valori anomali;
+2.  Costruire un boxplot della frequenza cardiaca a riposo per sport; dal boxplot, possiamo osservare se ci siano differenze sulla frequenza cardiaca a seconda dello sport?
+
+```{r}
+# to-do
+```

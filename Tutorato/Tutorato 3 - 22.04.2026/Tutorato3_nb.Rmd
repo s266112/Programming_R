@@ -1,0 +1,88 @@
+---
+title: "Tutorato 3"
+author: "Sara Trabucco"
+date: "22 Aprile 2026"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Esercizio 1
+
+Caricare il dataset `student_performance_data.csv` (di cui potete trovare i dettagli su [Kaggle](https://www.kaggle.com/datasets/borovai0/student-performance-analytics-dataset)). Poi:
+
+## 1. Tipologia delle variabili
+
+Classificare tutte le variabili del dataset indicandone:
+
+-   **Tipo**: qualitativa / quantitativa
+
+-   **Sottotipo**: nominale (dicotomica o meno) / ordinale / discreta / continua
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+## 2. Ricodifica delle variabili
+
+-   Dopo aver verificato la presenza di NA (come sono rappresentati e quanti sono per variabile?), rimuovere dal dataset le osservazioni contenenti almeno un valore mancante;
+-   Alcune variabili qualitative possono essere trasformate in factor direttamente, altre no; perché?
+-   Dopo aver trasformato le variabili qualitative in factor, riordinare i livelli ove necessario;
+-   Si consideri la variabile `study_hours_per_day` e si aggiunga al dataset una nuova variabile `study_time` che abbia, per ogni osservazione:
+    -   `low` se `study_hours_per_day` è minore di 3,
+
+    -   `medium` se è compresa tra 3 e 6,
+
+    -   `high` altrimenti.
+-   Si consideri la variabile `attendance_percentage` e si aggiunga al dataset un nuova variabile `attendance` che abbia, per ogni osservazione:
+    -   `low` se `attendance_percentage` è minore di 60,
+
+    -   `medium` se è compresa tra 60 e 80,
+
+    -   `high` altrimenti.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
+
+## 3. Analisi delle variabili
+
+-   Considerare le variabili `overall_score`, `study_hours_per_day` e `sleep_hours` e calcolarne:
+
+    -   indici di **posizione**;
+
+    -   indici di **dispersione**;
+
+    -   indici di **simmetria**.
+
+-   Costruire la tabella delle frequenze assolute e relative di `study_time` e `attendance` e rappresentarle con uno strumento grafico appropriato;
+
+-   Costruire la tabella di contingenza di `study_time` e `attendance` con la variabile `grade` e rappresentarle con uno strumento grafico appropriato;
+
+-   Costruire la tabella contenente la distribuzione di `grade` condizionata a `study_time`; cosa possiamo dire?
+
+-   Calcolare le medie di `overall_score` per gruppo rispetto a `study_time` e `attendance`; quale gruppo ha la media più alta?
+
+-   Costruire i boxplot di `overall_score` condizionato a `study_time` e a `attendance`; cosa possiamo dire?
+
+-   Calcolare la media di `overall_score` per ogni combinazione di `study_time` e `attendance`; esiste un effetto combinato tra le due variabili?
+
+-   Considerare la distribuzione di `overall_score` e:
+
+    -   rappresentarla tramite istogramma e curva di densità, aggiungendo al plot anche una linea rossa ad indicarne la media;
+
+    -   costruire la funzione di ripartizione empirica e confrontarla con una distribuzione teorica;
+
+    -   costruire un grafico quantile-quantile.
+
+## Svolgimento
+
+```{r}
+# to-do
+```
