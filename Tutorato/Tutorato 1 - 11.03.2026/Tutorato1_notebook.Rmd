@@ -1,23 +1,57 @@
 ---
 title: "Tutorato 1 - Notebook"
 output:
-  pdf_document: default
+  html_document:
+    df_print: paged
   html_notebook: default
+  pdf_document:
+    latex_engine: xelatex
 ---
+
 
 # Esercizio 1
 
 Costruire il vettore composto dai numeri 2,5,8,9,1,0,3,10; poi:
 
-1.  sommare 3 a tutti gli elementi;
-2.  definire un nuovo vettore `y` composto dal quadrato di ogni elemento;
-3.  definire un nuovo vettore `z` ottenuto dividendo tutti gli elementi per la media del vettore.
+a.  Sommare 3 a tutti gli elementi;
+b.  Definire un nuovo vettore `y` composto dal quadrato di ogni elemento;
+c.  Definire un nuovo vettore `z` ottenuto dividendo tutti gli elementi per la media del vettore.
 
-## Svolgimento
+## ✏️ Svolgimento
 
+### 🔹 a) Sommare 3 a tutti gli elementi
 ```{r}
-# to-do
+# Creo il vettore con i valori dati
+x <- c(2,5,8,9,1,0,3,10)
+
+# Sommo3 a tutti gli elementi del vettore
+x_plus_3 <- x + 3
+
+# Visualizzo il risultato
+x_plus_3
+
 ```
+### 🔹 b) Vettore y con il quadrato di ogni elemento
+```{r}
+# Elevo al quadrato ogni elemento del vettore
+y <- x^2
+
+# Visualizzo il risultato
+y
+```
+### 🔹 c) Vettore z diviso per la media
+```{r}
+# Calcolo la media del vettore
+media_x <- mean(x)
+
+# Divido ogni elemento per la media
+z <- x / media_x
+
+# Visualizzo il risultato
+z
+```
+
+
 
 # Esercizio 2
 
@@ -27,49 +61,186 @@ Definire il vettore composto dai numeri 1,4,7,10,3,9,2,8; poi creare un vettore 
 
 -   $y_i=x_i$ altrimenti.
 
-## Svolgimento
+
+## ✏️ Svolgimento
 
 ```{r}
-# to-do
+# Creo il vettore con i valori dati
+x <- c(1,4,7,10,3,9,2,8)
+
+# Applico la condizione:
+# se elemento > 5 → elevo al quadrato
+# altrimenti → lascio invariato
+y <- ifelse(x > 5, x^2, x)
+
+# Visualizzo il risultato
+y
 ```
+---
+
+### 💡 Spiegazione veloce
+
+👉 `ifelse(condizione, vero, falso)`
+
+In questo caso:  
+- `x > 5` → condizione  
+- `x^2` → se vero  
+- `x` → se falso
+
+💥 viene applicato AUTOMATICAMENTE a tutto il vettore
+
+---
 
 # Esercizio 3
 
 Definire il vettore composto dai numeri 3,7,5,9,2,8,6,1; poi:
 
-1.  contare quanti elementi sono maggiori di 5 e la loro proporzione sul totale;
-2.  contare quanti elementi sono pari;
-3.  creare un nuovo vettore `y` che contenga gli elementi dispari.
+a.  Contare quanti elementi sono maggiori di 5 e la loro proporzione sul totale;
+b.  Contare quanti elementi sono pari;
+c.  Creare un nuovo vettore `y` che contenga gli elementi dispari.
 
-## Svolgimento
+## ✏️ Svolgimento
+
+
+### 🔹 a) Elementi maggiori di 5
 
 ```{r}
-# to-do
+# Creo il vettore
+x <- c(3,7,5,9,2,8,6,1)
+
+# Seleziono gli elementi maggiori di 5
+maggiori_5 <- x[x > 5]
+
+# Conto quanti sono
+conteggio <- length(maggiori_5)
+
+# Calcolo la proporzione sul totale
+proporzione <- conteggio / length(x)
+
+# Visualizzo i risultati
+conteggio
+proporzione
 ```
+
+### 🔹 b) Elementi pari
+
+```{r}
+# Seleziono gli elementi pari
+pari <- x[x %% 2 == 0]
+
+# Conto quanti sono
+length(pari)
+```
+
+### 🔹 c) Vettore con elementi dispari
+
+```{r}
+# Seleziono gli elementi dispari
+y <- x[x %% 2 != 0]
+
+# Visualizzo il vettore
+y
+```
+
+---
+
+### 💡 Nota importante
+
+👉 `%/%` NO  
+👉 `%%` = **modulo** (resto divisione)  
+
+- `x %% 2 == 0` → pari  
+- `x %% 2 != 0` → dispari  
+
+---
 
 # Esercizio 4
 
 Calcolare il prodotto scalare dei vettori $x=(1,2,3,4)$ e $y=(10,20,30,40)$.
 
-## Svolgimento
+## ✏️ Svolgimento
 
 ```{r}
-# to-do
+# Creo i due vettori
+x <- c(1,2,3,4)
+y <- c(10,20,30,40)
+
+# Calcolo il prodotto scalare
+prodotto_scalare <- sum(x * y)
+
+# Visualizzo il risultato
+prodotto_scalare
+
 ```
+---
+
+### 💡 Spiegazione veloce 
+
+👉 `x * y` → moltiplicazione elemento per elemento    
+👉 `sum(...)` → somma tutto  
+
+💥 quindi: prodotto scalare = somma dei prodotti
+
+---
 
 # Esercizio 5
 
 Definire il vettore 5,12,7,20,3,15; poi:
 
-1.  estrarre gli elementi tra 5 e 15;
-2.  estrarre gli elementi multipli di 5;
-3.  definire il vettore `y` degli elementi maggiori della media.
+a.  Estrarre gli elementi tra 5 e 15;
+b.  Estrarre gli elementi multipli di 5;
+c.  Definire il vettore `y` degli elementi maggiori della media.
 
-## Svolgimento
+## ✏️ Svolgimento
+
+### 🔹 a) Elementi tra 5 e 15
 
 ```{r}
-# to-do
+# Creo il vettore
+x <- c(5,12,7,20,3,15)
+
+# Seleziono gli elementi compresi tra 5 e 15
+tra_5_15 <- x[x >= 5 & x <= 15]
+
+# Visualizzo il risultato
+tra_5_15
 ```
+
+---
+
+### 🔹 b) Elementi multipli di 5
+
+```{r}
+# Seleziono gli elementi multipli di 5
+multipli_5 <- x[x %% 5 == 0]
+
+# Visualizzo il risultato
+multipli_5
+```
+
+---
+
+### 🔹 c) Elementi maggiori della media
+
+```{r}
+# Calcolo la media del vettore
+media_x <- mean(x)
+
+# Seleziono gli elementi maggiori della media
+y <- x[x > media_x]
+
+# Visualizzo il risultato
+y
+```
+
+---
+
+### 💡 Nota importante
+
+👉 `&` = AND  
+👉 `%%` = modulo (resto divisione)  
+
+---
 
 # Esercizio 6
 
@@ -81,16 +252,81 @@ $$
 
 dove le città sono, nell’ordine: Milano, Venezia, Firenze, Roma.
 
-1.  costruire la matrice in R e salvarla in un oggetto `D`;
-2.  assegnare i nomi delle citta alle righe e alle colonne;
-3.  estrarre la distanza tra Milano e Firenze;
-4.  trovare la citta piu vicina a Roma.
+a.  Costruire la matrice in R e salvarla in un oggetto `D`;
+b.  Assegnare i nomi delle citta alle righe e alle colonne;
+c.  Estrarre la distanza tra Milano e Firenze;
+d.  Trovare la citta piu vicina a Roma.
 
-## Svolgimento
+## ✏️ Svolgimento
+
+### 🔹 a) Creazione della matrice
 
 ```{r}
-# to-do
+# Creo la matrice inserendo i valori riga per riga
+D <- matrix(c(
+  0, 246, 250, 478,
+  246, 0, 204, 394,
+  250, 204, 0, 232,
+  478, 394, 232, 0
+), nrow = 4, byrow = TRUE)
+
+# Visualizzo la matrice
+D
 ```
+
+---
+
+### 🔹 b) Assegno i nomi alle righe e colonne
+
+```{r}
+# Definisco i nomi delle città
+citta <- c("Milano", "Venezia", "Firenze", "Roma")
+
+# Assegno nomi a righe e colonne
+rownames(D) <- citta
+colnames(D) <- citta
+
+# Visualizzo la matrice con i nomi
+D
+```
+
+---
+
+### 🔹 c) Distanza tra Milano e Firenze
+
+```{r}
+# Estraggo la distanza tra Milano e Firenze
+D["Milano", "Firenze"]
+```
+
+---
+
+### 🔹 d) Città più vicina a Roma
+
+```{r}
+# Estraggo le distanze da Roma
+distanze_roma <- D["Roma", ]
+
+# Rimuovo la distanza da sé stessa (0)
+distanze_roma <- distanze_roma[distanze_roma != 0]
+
+# Trovo la città con distanza minima
+citta_piu_vicina <- names(which.min(distanze_roma))
+
+# Visualizzo il risultato
+citta_piu_vicina
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+👉 **matrix(..., byrow = TRUE)** → Riempi per righe  
+👉 **rownames() / colnames()** →  Etichette  
+👉 **D["Roma", ]** → Prendi tutta la riga  
+👉 **which.min()** → Trova il minimo  
+
+
 
 # Esercizio 8
 
@@ -104,44 +340,223 @@ Creare un data frame chiamato gatti con le seguenti variabili:
 
 Poi:
 
-1.  trasformare la variabile colore in un factor;
-2.  contare quanti gatti ci sono per ciascun colore;
-3.  calcolare il peso medio dei gatti;
-4.  estrarre i gatti con peso maggiore di 4 kg.
+a.  Trasformare la variabile colore in un factor;
+b.  contare quanti gatti ci sono per ciascun colore;
+c.  Calcolare il peso medio dei gatti;
+d.  Estrarre i gatti con peso maggiore di 4 kg.
 
-## Svolgimento
+## ✏️ Svolgimento
+
+### 🔹 a) Creazione del data frame
 
 ```{r}
-# to-do
+# Creo il data frame
+gatti <- data.frame(
+  nome = c("Lilly", "Buffy", "Scar", "Nala"),
+  colore = c("tigrato", "tigrato", "nero", "rosso"),
+  peso = c(3.5, 4.2, 5.1, 4.5)
+)
+
+# Visualizzo il data frame
+gatti
 ```
+
+---
+
+### 🔹 b) Trasformo colore in factor
+
+```{r}
+# Trasformo la variabile colore in factor
+gatti$colore <- as.factor(gatti$colore)
+
+# Controllo la struttura
+str(gatti)
+```
+
+---
+
+### 🔹 c) Numero di gatti per colore
+
+```{r}
+# Conto quanti gatti ci sono per ciascun colore
+table(gatti$colore)
+```
+
+---
+
+### 🔹 d) Peso medio dei gatti
+
+```{r}
+# Calcolo il peso medio
+mean(gatti$peso)
+```
+
+---
+
+### 🔹 e) Gatti con peso maggiore di 4
+
+```{r}
+# Seleziono i gatti con peso > 4
+gatti[gatti$peso > 4, ]
+```
+
+
+---
+
+## 💡 Concetti fondamentali
+
+👉 **data.frame()** → Struttura dati principale  
+👉 **$** → Accedere alle colonne  
+👉 **as.factor()** → Variabile categoriale  
+👉 **table()** → Conteggi  
+👉 **filtro**: df[condizione, ]  
+
+💥 Questo è il cuore della data analysis
+
+---
 
 # Esercizio con Dataset
 
 Per prima cosa caricare il dataset `Studenti.RData`; poi svolgere i seguenti punti:
 
-i.  Esplorare il dataset usando funzioni come `head`, `str`, `summary`, etc.; che variabili contiene il dataset? Di che tipo sono?
-ii. Estrarre i voti dell’esame di statistica e calcolarne la media, il massimo ed il minimo;
-iii. Trovare:
-     -   gli studenti con voto di statistica superiore a 28;
+a).  Esplorare il dataset usando funzioni come `head`, `str`, `summary`, etc.; che variabili contiene il dataset? Di che tipo sono?  
 
-     -   gli studenti che studiano piu di 20 ore;
+b). Estrarre i voti dell’esame di statistica e calcolarne la media, il massimo ed il minimo;  
 
-     -   gli studenti di informatica con voto di programmazione superiore a 29.
-iv. Creare una nuova colonna chiamata media composta dalle medie tra i due esami di ciascun studente e trovare:
-    -   quale studente ha la media piu alta;
+c). Trovare:  
+    -   Gli studenti con voto di statistica superiore a 28;  
+    -   Gli studenti che studiano piu di 20 ore;  
+    -   Gli studenti di informatica con voto di programmazione superiore a 29. 
+     
+d). Creare una nuova colonna chiamata media composta dalle medie tra i due esami di ciascun studente e trovare:  
+    -   Quale studente ha la media piu alta;  
+    -   Quanti studenti hanno media maggiore o uguale a 23 e minore o uguale a 28.  
+    
+e).  Trasformare in factor le variabili categoriali presenti nel dataset;
 
-    -   quanti studenti hanno media maggiore o uguale a 23 e minore o uguale a 28.
-v.  Trasformare in factor le variabili categoriali presenti nel dataset;
-vi. Contare il numero di studenti per corso e ricavare la media dei voti **per corso** e poi la media dei voti **per anno**;
-vii. Contare il numero di studenti per anno e corso; trovare:
-     -   quale anno ha piu studenti;
+f). Contare il numero di studenti per corso e ricavare la media dei voti **per corso** e poi la media dei voti **per anno**;
 
-     -   in quale corso ci sono piu studenti del terzo anno? E in generale?
+g). Contare il numero di studenti per anno e corso; trovare:  
+    -   Quale anno ha piu studenti;  
+    -   In quale corso ci sono piu studenti del terzo anno? E in generale?
 
-**BONUS** possiamo dire che gli studenti di informatica studiano pi\`u ora di quelli di statistica?
+**BONUS** Possiamo dire che gli studenti di informatica studiano più ora di quelli di statistica?
 
-## Svolgimento
+## ✏️ Svolgimento
+
+### 🔹 a) Esplorazione del dataset
 
 ```{r}
-# to-do
+# Carico il dataset
+load("Studenti.RData")
+
+# Visualizzo le prime righe
+head(Studenti)
+
+# Struttura del dataset
+str(Studenti)
+
+# Statistiche riassuntive
+summary(Studenti)
+```
+
+---
+
+### 🔹 b) Voti di statistica
+
+```{r}
+# Estraggo i voti di statistica
+voti_stat <- Studenti$voto_stat
+
+# Calcolo media, massimo e minimo
+mean(voti_stat)
+max(voti_stat)
+min(voti_stat)
+```
+
+---
+
+### 🔹 c) Filtri sugli studenti
+
+### 🔹 c) Filtri sugli studenti
+
+```{r}
+# Studenti con voto di statistica > 28
+Studenti[Studenti$voto_stat > 28, ]
+
+# Studenti che studiano più di 20 ore
+Studenti[Studenti$ore_studio > 20, ]
+
+# Studenti di informatica con voto di programmazione > 29
+Studenti[Studenti$corso == "Informatica" & Studenti$voto_prog > 29, ]
+```
+
+---
+
+### 🔹 d) Creazione della media
+
+```{r}
+# Creo una nuova colonna con la media dei due esami
+Studenti$media <- (Studenti$voto_stat + Studenti$voto_prog) / 2
+
+# Studente con media più alta
+Studenti[which.max(Studenti$media), ]
+
+# Numero di studenti con media tra 23 e 28
+sum(Studenti$media >= 23 & Studenti$media <= 28)
+```
+
+---
+
+### 🔹 e) Trasformo variabili categoriali in factor
+
+```{r}
+# Trasformo le variabili categoriali in factor
+Studenti$corso <- as.factor(Studenti$corso)
+Studenti$anno <- as.factor(Studenti$anno)
+
+# Controllo struttura
+str(Studenti)
+```
+
+---
+
+### 🔹 f) Conteggi e medie
+
+```{r}
+# Numero di studenti per corso
+table(Studenti$corso)
+
+# Media voti per corso
+aggregate(Studenti$media, by = list(Studenti$corso), FUN = mean)
+
+# Media voti per anno
+aggregate(Studenti$media, by = list(Studenti$anno), FUN = mean)
+```
+
+---
+
+### 🔹 g) Analisi studenti
+
+```{r}
+# Numero studenti per anno e corso
+table(Studenti$anno, Studenti$corso)
+
+# Anno con più studenti
+names(which.max(table(Studenti$anno)))
+
+# Corso con più studenti del terzo anno
+table(Studenti$corso[Studenti$anno == 3])
+
+# Corso con più studenti in generale
+names(which.max(table(Studenti$corso)))
+```
+
+---
+
+### 🔹 BONUS
+
+```{r}
+# Confronto ore di studio tra corsi
+aggregate(Studenti$ore_studio, by = list(Studenti$corso), FUN = mean)
 ```
