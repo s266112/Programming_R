@@ -1,12 +1,15 @@
 ---
 title: "Tutorato 3"
-author: "Sara Trabucco"
-date: "22 Aprile 2026"
-output: html_document
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+date: "2026-04-15"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 ## Esercizio 1
@@ -21,68 +24,364 @@ Classificare tutte le variabili del dataset indicandone:
 
 -   **Sottotipo**: nominale (dicotomica o meno) / ordinale / discreta / continua
 
-## Svolgimento
+
+## ✏️ Svolgimento
 
 ```{r}
-# to-do
+# Carico dataset
+studenti <- read.csv("student_performance_data.csv")
+
+# Prime righe
+head(studenti)
+
+# Struttura
+str(studenti)
+
+# Statistiche
+summary(studenti)
+
+# Controllo NA
+colSums(is.na(studenti))
 ```
+
+---
+
+## 💥 Risposte
+
+a): student_id è una variabile **quantitativa discreta**.  
+
+b): gender è una variabile **qualitativa nominale**.  
+
+c): study_hours_per_day è una variabile **quantitativa continua**.  
+
+d): attendance_percentage è una variabile **quantitativa continua**.  
+
+e): assignment_score, midterm_score, final_exam_score e participation_score sono variabili **quantitative continue**.  
+
+f): internet_access ed extra_classes sono variabili **qualitative nominali dicotomiche**.  
+
+g): parent_education è una variabile **qualitativa nominale**.  
+
+h): sleep_hours e overall_score sono variabili **quantitative continue**.  
+
+i): grade è una variabile **qualitativa ordinale**.  
+
+
+---
 
 ## 2. Ricodifica delle variabili
 
--   Dopo aver verificato la presenza di NA (come sono rappresentati e quanti sono per variabile?), rimuovere dal dataset le osservazioni contenenti almeno un valore mancante;
--   Alcune variabili qualitative possono essere trasformate in factor direttamente, altre no; perché?
--   Dopo aver trasformato le variabili qualitative in factor, riordinare i livelli ove necessario;
--   Si consideri la variabile `study_hours_per_day` e si aggiunga al dataset una nuova variabile `study_time` che abbia, per ogni osservazione:
-    -   `low` se `study_hours_per_day` è minore di 3,
+a)   Dopo aver verificato la presenza di NA (come sono rappresentati e quanti sono per variabile?), rimuovere dal dataset le osservazioni contenenti almeno un valore mancante;
 
-    -   `medium` se è compresa tra 3 e 6,
+b)   Alcune variabili qualitative possono essere trasformate in factor direttamente, altre no; perché?
 
-    -   `high` altrimenti.
--   Si consideri la variabile `attendance_percentage` e si aggiunga al dataset un nuova variabile `attendance` che abbia, per ogni osservazione:
-    -   `low` se `attendance_percentage` è minore di 60,
+c)   Dopo aver trasformato le variabili qualitative in factor, riordinare i livelli ove necessario;
 
-    -   `medium` se è compresa tra 60 e 80,
+d)   Si consideri la variabile `study_hours_per_day` e si aggiunga al dataset una nuova variabile `study_time` che abbia, per ogni osservazione:  
+  -   `low` se `study_hours_per_day` è minore di 3,  
+  -   `medium` se è compresa tra 3 e 6,  
+  -   `high` altrimenti.  
+    
+e)   Si consideri la variabile `attendance_percentage` e si aggiunga al dataset un nuova variabile `attendance` che abbia, per ogni osservazione:
+  -   `low` se `attendance_percentage` è minore di 60,  
+  -   `medium` se è compresa tra 60 e 80,  
+  -   `high` altrimenti.  
 
-    -   `high` altrimenti.
 
-## Svolgimento
+## ✏️ Svolgimento
 
 ```{r}
-# to-do
+# Controllo NA
+colSums(is.na(studenti))
+
+# Rimuovo righe con NA
+studenti_clean <- na.omit(studenti)
+
+# Trasformo variabili in factor
+studenti_clean$gender <- as.factor(studenti_clean$gender)
+studenti_clean$internet_access <- as.factor(studenti_clean$internet_access)
+studenti_clean$extra_classes <- as.factor(studenti_clean$extra_classes)
+studenti_clean$parent_education <- as.factor(studenti_clean$parent_education)
+
+# Trasformo grade in factor ORDINATO
+studenti_clean$grade <- factor(
+  studenti_clean$grade,
+  levels = c("F","D","C","B","A"),
+  ordered = TRUE
+)
+
+# Nuova variabile study_time
+studenti_clean$study_time <- cut(
+  studenti_clean$study_hours_per_day,
+  breaks = c(-Inf, 3, 6, Inf),
+  labels = c("low", "medium", "high")
+)
+
+# Nuova variabile attendance
+studenti_clean$attendance <- cut(
+  studenti_clean$attendance_percentage,
+  breaks = c(-Inf, 60, 80, Inf),
+  labels = c("low", "medium", "high")
+)
 ```
+---
+
+## 💥 Risposte
+
+a): I valori mancanti sono rappresentati come **NA**. Sono presenti in:  
+  - study_hours_per_day (87),  
+  - attendance_percentage (106),  
+  - sleep_hours (104)  
+  - overall_score (104).  
+  
+Le osservazioni contenenti almeno un valore mancante sono state rimosse dal dataset.  
+
+b): Le variabili qualitative possono essere trasformate in factor quando rappresentano categorie. Tuttavia, alcune variabili (come grade) non possono essere trasformate direttamente perché sono **ordinali** e richiedono un ordine tra i livelli.  
+
+c): Dopo la trasformazione in factor, i livelli devono essere riordinati per le variabili ordinali (ad esempio grade), in modo da rispettare l’ordine logico (es. A > B > C > D).  
+
+d): È stata creata la variabile study_time che classifica study_hours_per_day in **low**, **medium** e **high**.  
+
+e): È stata creata la variabile attendance che classifica attendance_percentage in **low**, **medium** e **high**.   
+
+---
 
 ## 3. Analisi delle variabili
 
--   Considerare le variabili `overall_score`, `study_hours_per_day` e `sleep_hours` e calcolarne:
+a)   Considerare le variabili `overall_score`, `study_hours_per_day` e `sleep_hours` e calcolarne:
+  -   indici di **posizione**;  
+  -   indici di **dispersione**;  
+  -   indici di **simmetria**.  
 
-    -   indici di **posizione**;
+b)   Costruire la tabella delle frequenze assolute e relative di `study_time` e `attendance` e rappresentarle con uno strumento grafico appropriato;
 
-    -   indici di **dispersione**;
+c)   Costruire la tabella di contingenza di `study_time` e `attendance` con la variabile `grade` e rappresentarle con uno strumento grafico appropriato;
 
-    -   indici di **simmetria**.
+d)   Costruire la tabella contenente la distribuzione di `grade` condizionata a `study_time`; cosa possiamo dire?
 
--   Costruire la tabella delle frequenze assolute e relative di `study_time` e `attendance` e rappresentarle con uno strumento grafico appropriato;
+e)   Calcolare le medie di `overall_score` per gruppo rispetto a `study_time` e `attendance`; quale gruppo ha la media più alta?
 
--   Costruire la tabella di contingenza di `study_time` e `attendance` con la variabile `grade` e rappresentarle con uno strumento grafico appropriato;
+f)   Costruire i boxplot di `overall_score` condizionato a `study_time` e a `attendance`; cosa possiamo dire?
 
--   Costruire la tabella contenente la distribuzione di `grade` condizionata a `study_time`; cosa possiamo dire?
+g)   Calcolare la media di `overall_score` per ogni combinazione di `study_time` e `attendance`; esiste un effetto combinato tra le due variabili?
 
--   Calcolare le medie di `overall_score` per gruppo rispetto a `study_time` e `attendance`; quale gruppo ha la media più alta?
+h)   Considerare la distribuzione di `overall_score` e:
+  -   rappresentarla tramite istogramma e curva di densità, aggiungendo al plot anche una linea rossa ad indicarne la media;  
+  -   costruire la funzione di ripartizione empirica e confrontarla con una distribuzione teorica;  
+  -   costruire un grafico quantile-quantile.  
 
--   Costruire i boxplot di `overall_score` condizionato a `study_time` e a `attendance`; cosa possiamo dire?
+## ✏️ Svolgimento
 
--   Calcolare la media di `overall_score` per ogni combinazione di `study_time` e `attendance`; esiste un effetto combinato tra le due variabili?
-
--   Considerare la distribuzione di `overall_score` e:
-
-    -   rappresentarla tramite istogramma e curva di densità, aggiungendo al plot anche una linea rossa ad indicarne la media;
-
-    -   costruire la funzione di ripartizione empirica e confrontarla con una distribuzione teorica;
-
-    -   costruire un grafico quantile-quantile.
-
-## Svolgimento
+### 🔹 a) Indici di posizione, dispersione e simmetria
 
 ```{r}
-# to-do
+# Funzione per calcolare indici principali
+indici_variabile <- function(x) {
+  c(
+    media = mean(x),
+    mediana = median(x),
+    minimo = min(x),
+    massimo = max(x),
+    primo_quartile = quantile(x, 0.25),
+    terzo_quartile = quantile(x, 0.75),
+    varianza = var(x),
+    deviazione_standard = sd(x),
+    IQR = IQR(x),
+    simmetria = mean((x - mean(x))^3) / sd(x)^3
+  )
+}
+
+# Indici per overall_score
+indici_variabile(studenti_clean$overall_score)
+
+# Indici per study_hours_per_day
+indici_variabile(studenti_clean$study_hours_per_day)
+
+# Indici per sleep_hours
+indici_variabile(studenti_clean$sleep_hours)
 ```
+---
+
+## 💥 Risposte  
+
+- overall_score ha media **63.82**, con distribuzione quasi simmetrica (simmetria ≈ 0) e dispersione moderata (deviazione standard **10.23**).  
+
+- study_hours_per_day ha media **5.52**, con distribuzione asimmetrica a destra (simmetria **0.79**) e maggiore variabilità.  
+
+- sleep_hours ha media **6.49**, con distribuzione quasi simmetrica e dispersione contenuta (deviazione standard **1.47**).  
+
+---
+
+### 🔹 b) Tabelle frequenze e grafici
+
+```{r}
+# Frequenze study_time
+freq_study <- table(studenti_clean$study_time)
+freq_study
+prop.table(freq_study)
+
+# Frequenze attendance
+freq_att <- table(studenti_clean$attendance)
+freq_att
+prop.table(freq_att)
+
+# Grafici
+barplot(freq_study, col = "lightblue", main = "Study Time")
+barplot(freq_att, col = "lightgreen", main = "Attendance")
+```
+---
+
+## 💥 Risposte
+
+- study_time presenta una maggiore frequenza nella categoria **high (43.52%)**, seguita da **medium (33.95%)** e **low (22.53%)**.  
+
+- attendance è distribuita in modo abbastanza uniforme tra **low (32.05%)**, **medium (33.58%)** e **high (34.36%)**.  
+
+---
+
+### 🔹 c) Tabelle di contingenza
+
+```{r}
+# study_time vs grade
+tab_study_grade <- table(studenti_clean$study_time, studenti_clean$grade)
+tab_study_grade
+
+# attendance vs grade
+tab_att_grade <- table(studenti_clean$attendance, studenti_clean$grade)
+tab_att_grade
+
+# Grafici
+barplot(tab_study_grade, beside = TRUE, legend = TRUE, col = rainbow(3))
+barplot(tab_att_grade, beside = TRUE, legend = TRUE, col = rainbow(3))
+```
+---
+
+## 💥 Risposte
+
+- Nella relazione tra **study_time e grade**, si osserva che all’aumentare del tempo di studio cresce la frequenza dei voti più alti (in particolare **B e C**).  
+
+- Nella relazione tra **attendance e grade**, non emerge una differenza molto marcata: le distribuzioni dei voti risultano abbastanza simili tra i diversi livelli di frequenza.  
+
+---
+
+### 🔹 d) Distribuzione condizionata
+
+```{r}
+# Distribuzione grade condizionata a study_time
+prop.table(tab_study_grade, margin = 1)
+```
+
+---
+
+## 💥 Risposta
+
+La distribuzione dei voti risulta abbastanza simile tra i diversi livelli di **study_time**. Non si osservano differenze molto marcate, anche se i voti intermedi (in particolare **B e C**) sono i più frequenti in tutti i gruppi.  
+
+---
+
+### 🔹 e) Medie per gruppo
+
+```{r}
+# Media overall_score per study_time
+studenti_clean %>%
+  group_by(study_time) %>%
+  summarise(media = mean(overall_score))
+
+# Media overall_score per attendance
+studenti_clean %>%
+  group_by(attendance) %>%
+  summarise(media = mean(overall_score))
+```
+---
+
+## 💥 Risposte
+
+- Per study_time, le medie sono molto simili tra i gruppi, con valori leggermente più alti per **low (64.08)**.  
+
+- Per attendance, la media più alta si osserva per il gruppo **high (65.46)**, seguito da **medium (63.92)** e **low (61.96)**.  
+
+👉 Il gruppo con la media più alta è quindi **attendance high**.  
+
+---
+
+### 🔹 f) Boxplot
+
+```{r}
+# Boxplot overall_score per study_time
+boxplot(overall_score ~ study_time,
+        data = studenti_clean,
+        col = "lightblue",
+        main = "Score vs Study Time")
+
+# Boxplot overall_score per attendance
+boxplot(overall_score ~ attendance,
+        data = studenti_clean,
+        col = "lightgreen",
+        main = "Score vs Attendance")
+```
+
+---
+
+## 💥 Risposte
+
+- Per study_time, i boxplot risultano molto simili tra i gruppi, con differenze poco marcate nei valori mediani.  
+
+- Per attendance, si osserva un leggero aumento dei valori di overall_score passando da **low** a **high**, suggerendo che una maggiore frequenza sia associata a risultati migliori.  
+
+---
+
+### 🔹 g) Effetto combinato
+
+```{r}
+studenti_clean %>%
+  group_by(study_time, attendance) %>%
+  summarise(media = mean(overall_score), .groups = "drop")
+```
+
+---
+
+## 💥 Risposta
+
+Si osserva che la media di overall_score aumenta principalmente al crescere di **attendance**, indipendentemente dal livello di study_time.  
+
+👉 Non emerge un forte effetto combinato tra le due variabili, ma l’effetto della frequenza (attendance) risulta più rilevante rispetto al tempo di studio.  
+
+---
+
+### 🔹 h) Distribuzione overall_score
+
+```{r}
+# Istogramma + densità
+hist(studenti_clean$overall_score,
+     probability = TRUE,
+     col = "lightblue",
+     main = "Distribuzione overall_score")
+
+lines(density(studenti_clean$overall_score), col = "red", lwd = 2)
+
+# linea media
+abline(v = mean(studenti_clean$overall_score), col = "red", lwd = 2)
+
+# ECDF
+plot(ecdf(studenti_clean$overall_score),
+     main = "ECDF overall_score")
+
+# QQ plot
+qqnorm(studenti_clean$overall_score)
+qqline(studenti_clean$overall_score, col = "red")
+```
+---
+
+## 💥 Risposte
+
+- L’istogramma mostra una distribuzione **circa simmetrica e unimodale**, con forma simile a una distribuzione normale.  
+
+- La curva di densità conferma una buona approssimazione a una distribuzione normale, con valori concentrati intorno alla media.  
+
+- La funzione di ripartizione empirica (ECDF) presenta un andamento regolare e crescente, coerente con una distribuzione continua.  
+
+- Il grafico quantile-quantile (QQ plot) mostra che i punti sono generalmente allineati alla retta, con leggere deviazioni nelle code.  
+
+👉 Si può quindi concludere che la distribuzione di overall_score è **approssimativamente normale**.  
+
+---
