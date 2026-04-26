@@ -1,0 +1,640 @@
+---
+title: "Homework 1"
+author: "Alessio Matessi"
+date: "2026-04-26"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+#  Esercizio 1
+
+Si considerino le seguenti richieste:
+
+a) Mostrare a schermo la sequenza di numeri naturali da 20 a 50.  
+b) Mostrare a schermo la sequenza di numeri da 20 a 50 intervallati con distanza 5.  
+c) Salvare in un vettore S la somma dei valori ottenuti al punto b e in M la loro media. 
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a):
+
+```{r}
+seq(20, 50)
+```
+
+---
+
+## 💥 Risposta
+
+È stata generata la *sequenza* di numeri naturali da **20 a 50** utilizzando la funzione `seq()`.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+seq(20, 50, by = 5)
+```
+---
+
+## 💥 Risposta
+
+È stata generata la *sequenza* di numeri da **20 a 50** con passo **5** utilizzando la funzione `seq()` con parametro `by = 5`.
+
+---
+
+
+### 🔹 Punto c)
+
+```{r}
+x <- seq(20, 50, by = 5)
+
+S <- sum(x)
+M <- mean(x)
+
+S
+M
+```
+
+---
+
+## 💥 Risposta
+
+La *somma* dei valori è pari a **245**, mentre la *media* è pari a **35**.
+
+---
+
+# Esercizio 2
+
+Crea una lista che contenga al suo interno:  
+
+  - Un vettore di numeri casuali fra 1 e 10,  
+  - Una matrice,  
+  - Una lista di 3 cantanti.  
+
+Poi assegna un nome per ogni elemento della lista (ad esempio "Numeri", "Matrice", "Cantanti").
+
+## ✏️ Svolgimento
+
+```{r}
+# Vettore numeri casuali
+numeri <- sample(1:10, size = 5, replace = TRUE)
+
+# Matrice
+mat <- matrix(1:4, nrow = 2)
+
+# Lista cantanti
+cantanti <- list("Elisa", "Ultimo", "Blanco")
+
+# Lista finale con nomi
+mia_lista <- list(
+  Numeri = numeri,
+  Matrice = mat,
+  Cantanti = cantanti
+)
+
+mia_lista
+```
+
+---
+
+## 💥 Risposta
+
+È stata creata una *lista* contenente un **vettore** di numeri casuali, una **matrice** e una *lista* di **cantanti**.
+
+---
+
+# 🔹 Esercizio 3
+
+Costruisci una matrice 2 × 3 composta da multipli di 2.  
+
+  a) Che cosa succede usando il comando `is.matrix()`? E `is.array()`?  
+  b) Estrai la terza colonna da questa matrice, chiamando l’oggetto estratto `b`. Che tipo di oggetto è?    
+  c) Converti `b` in matrice.  
+  
+  
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+```{r}
+# Matrice 2x3 con multipli di 2
+A <- matrix(seq(2, 12, by = 2), nrow = 2)
+
+A
+
+# Controllo tipo
+is.matrix(A)
+is.array(A)
+```
+
+---
+
+## 💥 Risposta
+
+La funzione `is.matrix()` restituisce **TRUE**, indicando che l’oggetto è una *matrice*.  
+Anche la funzione `is.array()` restituisce **TRUE**, poiché una *matrice* in R è un caso particolare di **array**.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Estrazione terza colonna
+b <- A[, 3]
+
+b
+class(b)
+```
+
+---
+
+## 💥 Risposta
+
+La terza colonna è stata estratta e salvata nell’oggetto `b`, che risulta essere un *vettore* di tipo **numeric**.
+
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+# Conversione del vettore b in matrice
+b_mat <- matrix(b, ncol = 1)
+
+# Stampo la matrice
+b_mat
+
+# Verifico la classe dell'oggetto
+class(b_mat)
+```
+
+---
+
+## 💥 Risposta
+
+L’oggetto `b` è stato convertito in una *matrice*, ottenendo un oggetto di classe **matrix** (e quindi anche **array**).
+
+---
+
+## 🔹 Esercizio 4
+
+Crea una funzione che calcola i primi n numeri di Fibonacci:
+
+\( F_0 = 0; \quad F_1 = 1; \quad F_n = F_{n-2} + F_{n-1} \)
+
+E se come output volessi, oltre ai primi n numeri, anche la loro media e la loro somma?
+
+
+## ✏️ Svolgimento
+
+```{r}
+# Funzione per calcolare i primi n numeri di Fibonacci
+fibonacci <- function(n)
+{
+  # Creo un vettore vuoto di lunghezza n
+  fib <- numeric(n)
+  
+  # Definisco i primi due valori della successione di Fibonacci
+  fib[1] <- 0
+  
+  if (n > 1)
+  {
+    fib[2] <- 1
+  }
+  
+  # Calcolo i valori successivi usando la formula: F_n = F_(n-1) + F_(n-2)
+  for (i in 3:n)
+  {
+    fib[i] <- fib[i - 1] + fib[i - 2]
+  }
+  
+  # Restituisco la sequenza, la somma e la media
+  risultato <- list(
+    Fibonacci = fib,
+    Somma = sum(fib),
+    Media = mean(fib)
+  )
+  
+  return(risultato)
+}
+
+# Esempio con i primi 10 numeri di Fibonacci
+fibonacci(10)
+```
+
+---
+
+## 💥 Risposta
+
+È stata definita una *funzione* che calcola i primi **n numeri di Fibonacci**.  
+La funzione restituisce una **lista** contenente la *sequenza di Fibonacci*, la **somma** e la *media* dei valori calcolati.
+
+---
+
+## 🔹 Esercizio 5
+
+Considera il dataframe Life.csv caricato su Moodle. Importa il dataset e svolgi i seguenti punti:
+
+a. Di che tipo sono le variabili? Alcune di esse possono essere considerate come dei fattori? Se lo ritieni opportuno, convertili.  
+b. Ci sono delle osservazioni mancanti? Cosa faresti per risolvere il problema? Motiva la tua scelta.  
+c. Quante osservazioni ci sono per ogni stato? E per ogni anno? Se lo ritieni opportuno, svolgi delle modifiche al data frame per effettuare delle analisi coerenti.  
+d. Calcola la media dell’aspettativa di vita per l’Australia. Come si potrebbe confrontarla con quella degli altri Stati?
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+```{r}
+# Import dataset
+life <- read.csv("Life.csv")
+
+# Struttura del dataset
+str(life)
+
+# Riassunto
+summary(life)
+```
+
+---
+
+## 💥 Risposta
+
+Le variabili `country_code` e `country_name` sono di tipo *qualitativo* (**character**), mentre `year` è *quantitativa discreta* e `value` è *quantitativa continua*.
+
+Le variabili categoriali possono essere convertite in **factor**.  
+Si osserva inoltre la presenza di valori anomali (come **9999**) e di osservazioni non valide, che richiedono una fase di *pulizia* del dataset prima di procedere con l’analisi.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Rimuovo righe non valide (quelle con testo)
+life <- life[life$country_code != "Ci sono alcuni valori che sono mancanti", ]
+
+# Sostituisco 9999 con NA
+life$value[life$value == 9999] <- NA
+
+# Controllo NA
+colSums(is.na(life))
+```
+
+---
+
+## 💥 Risposta
+
+Sono state individuate alcune *osservazioni mancanti* e valori anomali (come **9999**), che sono stati trattati sostituendoli con **NA** e rimuovendo le righe non valide.
+
+Si osserva che i valori mancanti sono presenti solo nella variabile `value`.  
+Per rendere le analisi coerenti, si può procedere eliminando le osservazioni con **NA** oppure applicando tecniche di imputazione, a seconda del contesto.
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+
+# Numero di osservazioni per stato
+osservazioni_stato <- life %>%
+  group_by(country_name) %>%
+  summarise(n_osservazioni = n())
+
+osservazioni_stato
+
+# Numero di osservazioni per anno
+osservazioni_anno <- life %>%
+  group_by(year) %>%
+  summarise(n_osservazioni = n())
+
+osservazioni_anno
+```
+
+---
+
+## 💥 Risposta
+
+Il dataset contiene **17 Stati** e **61 anni** di osservazioni.
+
+Per ciascuno Stato sono presenti più rilevazioni nel tempo, rendendo il dataset una *serie storica*.  
+Per effettuare analisi coerenti, è opportuno considerare la struttura longitudinale dei dati.
+
+---
+
+### 🔹 Punto d)
+
+```{r}
+# Media aspettativa di vita per Australia
+media_aus <- life %>%
+  filter(country_name == "Australia") %>%
+  summarise(media_life = mean(value, na.rm = TRUE))
+
+media_aus
+```
+
+---
+
+## 💥 Risposta
+
+La *media* dell’aspettativa di vita per l’**Australia** è pari a **76.72**.  
+
+Per confrontarla con quella degli altri Stati, è possibile calcolare la *media* per ciascun Paese e analizzare le differenze tra i valori ottenuti.
+
+---
+
+## 🔹 Esercizio 6
+
+Il file nazioni.csv contiene informazioni su 105 Nazioni e per ognuna di esse riporta:
+
+- areaGeo: la regione geografica  
+- reddito: il reddito pro capite in dollari  
+- infmort: il tasso di mortalità infantile (morti ogni 100 nascite)  
+- oil: se il paese esporta petrolio (1: no; 2: sì)
+
+a. Caricare i dati nello spazio di lavoro in un data frame chiamato `nazioni`, stampare il numero di righe dell’oggetto importato ed il nome delle variabili.  
+b. Stampare il vettore con il numero di valori mancanti presenti in ogni variabile.  
+c. Ottenere il nome dei Paesi in cui sono presenti valori mancanti.  
+d. Eliminare i valori mancanti dal data set.  
+e. Ottenere la distribuzione delle frequenze percentuali della variabile `areaGeo` ed ordinarle in ordine decrescente.  
+f. Convertire la variabile `areaGeo` in factor ordinando i livelli secondo l’ordine ottenuto al punto precedente. Salvare il factor come nuova variabile del data frame chiamata `areaGeofact` ed eliminare la variabile `areaGeo`.  
+g. Convertire la variabile `oil` in factor utilizzando i livelli: “no” e “yes”. Sovrascrivere la variabile `oil`.  
+h. Quali Paesi esportano petrolio e in quali regioni si trovano? Stampare il risultato in due colonne.  
+i. Calcolare il tasso di mortalità infantile medio in ogni area geografica.  
+j. Quante nazioni hanno un tasso di mortalità infantile ≥ 300?  
+k. Quante delle nazioni del punto precedente esportano petrolio?  
+l. Dividere la variabile `reddito` in classi utilizzando i quartili. Salvare in `redditoCat`.  
+m. Quante nazioni sono nell’ultima categoria? E qual è la loro distribuzione per area geografica?
+
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+```{r}
+# Import dataset
+nazioni <- read.csv("nazioni.csv")
+
+# Numero righe
+nrow(nazioni)
+
+# Nomi variabili
+names(nazioni)
+```
+
+---
+
+## 💥 Risposta
+
+Il dataset è stato importato correttamente e contiene **105 osservazioni**.  
+Le variabili presenti sono: **nome**, **areaGeo**, **reddito**, **infmort** e **oil**.
+
+---
+
+
+### 🔹 Punto b)
+
+```{r}
+# Numero valori mancanti per variabile
+colSums(is.na(nazioni))
+```
+
+---
+
+## 💥 Risposta
+
+Sono presenti *valori mancanti* nelle variabili `infmort` (**4**) e `oil` (**3**), mentre le altre variabili non presentano valori mancanti.
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+# Nomi dei paesi con valori mancanti
+nazioni$nome[!complete.cases(nazioni)]
+```
+
+---
+
+## 💥 Risposta
+
+I Paesi in cui sono presenti *valori mancanti* sono: **Iran**, **Austria**, **El Salvador**, **Haiti**, **Laos** e **Nepal**.
+
+---
+
+### 🔹 Punto d)
+
+```{r}
+# Rimozione valori mancanti
+nazioni <- na.omit(nazioni)
+
+# Controllo dimensione dopo pulizia
+nrow(nazioni)
+```
+
+---
+
+## 💥 Risposta
+
+I *valori mancanti* sono stati eliminati dal dataset, ottenendo un totale di **99 osservazioni**.
+
+---
+
+### 🔹 Punto e)
+
+```{r}
+# Frequenze percentuali areaGeo
+freq_area <- prop.table(table(nazioni$areaGeo)) * 100
+
+# Ordinamento decrescente
+freq_area_sorted <- sort(freq_area, decreasing = TRUE)
+
+freq_area_sorted
+```
+
+---
+
+## 💥 Risposta
+
+La variabile `areaGeo` presenta una distribuzione *non uniforme*.  
+L’**Africa** è l’area più rappresentata (**34.34%**), seguita da *Asia* (**27.27%**), *Americas* (**21.21%**) ed *Europe* (**17.17%**).
+
+---
+
+### 🔹 Punto f)
+
+```{r}
+# Creazione factor ordinato
+nazioni$areaGeofact <- factor(
+  nazioni$areaGeo,
+  levels = names(freq_area_sorted)
+)
+
+# Rimozione variabile originale
+nazioni$areaGeo <- NULL
+
+# Controllo
+str(nazioni)
+```
+
+---
+
+## 💥 Risposta
+
+La variabile `areaGeo` è stata convertita in un *factor* ordinato secondo la distribuzione percentuale osservata.  
+Il nuovo factor è stato salvato come `areaGeofact` e la variabile originale è stata eliminata dal dataset.
+
+---
+
+### 🔹 Punto g)
+
+```{r}
+# Conversione oil in factor
+nazioni$oil <- factor(
+  nazioni$oil,
+  levels = c(1, 2),
+  labels = c("no", "yes")
+)
+
+# Controllo
+table(nazioni$oil)
+```
+
+---
+
+## 💥 Risposta
+
+La variabile `oil` è stata convertita in un *factor* con livelli **"no"** e **"yes"**.  
+Si osserva che **91** nazioni non esportano petrolio, mentre **8** lo esportano.
+
+---
+
+### 🔹 Punto h)
+
+```{r}
+# Paesi che esportano petrolio e loro area geografica
+nazioni %>%
+  filter(oil == "yes") %>%
+  select(nome, areaGeofact)
+```
+
+---
+
+## 💥 Risposta
+
+I Paesi che esportano petrolio sono: **Algeria**, **Ecuador**, **Indonesia**, **Iraq**, **Libya**, **Nigeria**, **Saudi Arabia** e **Venezuela**.  
+
+Essi appartengono principalmente alle aree *Africa*, *Asia* e *Americas*.
+
+---
+
+### 🔹 Punto i)
+
+```{r}
+# Mortalità infantile media per area geografica
+nazioni %>%
+  group_by(areaGeofact) %>%
+  summarise(media_infmort = mean(infmort))
+```
+
+---
+
+## 💥 Risposta
+
+Il tasso medio di *mortalità infantile* è più elevato in **Africa** (**142.29**), seguito da **Asia** (**96.17**), **Americas** (**54.98**) ed infine **Europe** (**18.99**).
+
+
+---
+
+### 🔹 Punto j)
+
+```{r}
+# Nazioni con infmort >= 300
+n_alte <- nazioni %>%
+  filter(infmort >= 300)
+
+nrow(n_alte)
+```
+
+---
+
+## 💥 Risposta
+
+Sono presenti **3 nazioni** con un tasso di *mortalità infantile* maggiore o uguale a **300**.
+
+
+---
+
+### 🔹 Punto k)
+
+```{r}
+# Tra quelle con infmort >= 300, quante esportano petrolio
+n_alte %>%
+  filter(oil == "yes") %>%
+  nrow()
+```
+
+---
+
+## 💥 Risposta
+
+Tra le nazioni con un tasso di *mortalità infantile* maggiore o uguale a **300**, **2** esportano petrolio.
+
+---
+
+
+### 🔹 Punto l)
+
+```{r}
+# Suddivisione reddito in quartili
+nazioni$redditoCat <- cut(
+  nazioni$reddito,
+  breaks = quantile(nazioni$reddito, probs = seq(0, 1, 0.25)),
+  include.lowest = TRUE
+)
+
+# Controllo
+table(nazioni$redditoCat)
+```
+
+---
+
+## 💥 Risposta
+
+La variabile `reddito` è stata suddivisa in *classi* utilizzando i **quartili**, ottenendo una distribuzione approssimativamente uniforme delle osservazioni tra le diverse categorie.
+
+---
+
+### 🔹 Punto m)
+
+```{r}
+# Nazioni nell'ultima categoria
+ultimi <- nazioni %>%
+  filter(redditoCat == levels(nazioni$redditoCat)[length(levels(nazioni$redditoCat))])
+
+# Numero nazioni
+nrow(ultimi)
+
+# Distribuzione per area geografica
+ultimi %>%
+  group_by(areaGeofact) %>%
+  summarise(n = n())
+```
+
+---
+
+## 💥 Risposta
+
+Nell’ultima categoria di reddito sono presenti **25 nazioni**.  
+
+La distribuzione per area geografica mostra una prevalenza in **Europe** (**15**), seguita da **Asia** (**5**), **Americas** (**4**) e **Africa** (**1**).
+
+
+---
+
