@@ -1,11 +1,9 @@
 ---
-title: "Tutorato 1 - Notebook"
+title: "Soluzione Tutorato 1"
 output:
   pdf_document:
     latex_engine: xelatex
-  html_notebook: default
-  html_document:
-    df_print: paged
+  html_document: default
 ---
 
 
