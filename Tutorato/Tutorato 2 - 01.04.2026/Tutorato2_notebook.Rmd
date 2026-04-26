@@ -1,13 +1,15 @@
 ---
 title: "Tutorato 2"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document:
+    latex_engine: xelatex
 date: "2026-03-25"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 # 1. Esercizio con Dataset
@@ -62,19 +64,298 @@ Vogliamo analizzare il dataset `mtcars` usando le funzioni del pacchetto `dplyr`
 
 12. Costruire una tabella a doppia entrata tra numero di cilindri `cyl` e numero di marce `gear`; calcolare poi le frequenze relative per riga: la distribuzione del numero di marce sembra cambiare al variare del numero di cilindri?
 
+## ✏️ Svolgimento
+
+### 🔹 1) Caricare ed esplorare il dataset
+
 ```{r}
-# to-do
+# Carico il dataset
+data(mtcars)
+
+# Visualizzo le prime righe
+head(mtcars)
+
+# Struttura del dataset
+str(mtcars)
+
+# Statistiche riassuntive
+summary(mtcars)
 ```
 
+---
+
+### 🔹 2) Aggiungere la colonna car_name
+
+```{r}
+# Trasformo i nomi delle righe in colonna
+mtcars$car_name <- rownames(mtcars)
+
+# Porto la colonna all’inizio
+mtcars <- mtcars[, c("car_name", names(mtcars)[names(mtcars) != "car_name"])]
+
+# Visualizzo
+head(mtcars)
+```
+
+### 🔹 3) Estrarre colonne specifiche
+
+```{r}
+# Estraggo solo le colonne mpg, hp e wt
+mtcars %>%
+  select(mpg, hp, wt)
+
+# Estraggo tutte le colonne che iniziano per "d"
+mtcars %>%
+  select(starts_with("d"))
+
+# Estraggo tutte le colonne numeriche
+mtcars %>%
+  select(where(is.numeric))
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+Qui uso select() di dplyr:  
+
+**select(mpg, hp, wt)** → Scelgo colonne precise  
+**starts_with("d")** → Scelgo colonne che iniziano con d  
+**where(is.numeric)** → Scelgo solo colonne numeriche  
+
+---
+
+### 🔹 4) Estrarre alcune osservazioni
+
+```{r}
+# Auto con più di 150 cavalli
+mtcars %>%
+  filter(hp > 150)
+
+# Auto con mpg > 25 e peso < 3
+mtcars %>%
+  filter(mpg > 25 & wt < 3)
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+Qui uso filter() di dplyr:  
+
+**filter(hp > 150)** → Seleziono le auto con più di 150 cavalli  
+**filter(mpg > 25 & wt < 3)** → Seleziono le auto con consumo alto e peso basso  
+
+👉 **filter()** lavora sulle righe (osservazioni)  
+
+👉 **&** significa AND (entrambe le condizioni devono essere vere)
+
+---
+
+### 🔹 5) Ordinare i dati
+
+```{r}
+# Ordino le auto per mpg crescente
+mtcars %>%
+  arrange(mpg)
+
+# Ordino le auto per hp decrescente
+mtcars %>%
+  arrange(desc(hp))
+```
+
+
+### 🔹 6) Creare nuove variabili (conversioni)
+
+```{r}
+# Creo il nuovo dataset con le conversioni
+mtcars_it <- mtcars %>%
+  mutate(
+    consumo = mpg * 0.425144,                 # mpg → km/l
+    peso = wt * 453.592,                      # migliaia di lb → kg
+    cilindrata = disp * 0.0163871             # cubic inches → litri
+  )
+
+# Visualizzo le prime righe
+head(mtcars_it)
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+Qui uso mutate() di dplyr:  
+
+**mutate(...)** → Serve per creare nuove colonne  
+
+**consumo = mpg * 0.425144** → Converto da mpg a km/l  
+**peso = wt * 453.592** → Converto da migliaia di libbre a kg  
+**cilindrata = disp * 0.0163871** → Converto da pollici cubici a litri  
+
+👉 Il nuovo dataset **mtcars_it** contiene sia le colonne vecchie che quelle nuove  
+
+👉 mutate() NON modifica l’originale se salvo in un nuovo oggetto  
+
+---
+
+### 🔹 7) e 8) Efficienza e analisi per gruppi
+
+```{r}
+# Aggiungo la colonna efficienza
+mtcars_it <- mtcars_it %>%
+  mutate(
+    efficienza = consumo / peso
+  )
+
+# Calcolo il consumo medio per numero di cilindri
+mtcars_it %>%
+  group_by(cyl) %>%
+  summarise(consumo_medio = mean(consumo)) %>%
+  arrange(desc(consumo_medio))
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+Qui uso mutate(), group_by() e summarise():  
+
+**efficienza = consumo / peso** → Rapporto tra consumo e peso  
+
+👉 **group_by(cyl)** → Raggruppo le auto per numero di cilindri  
+
+👉 **summarise(...)** → Calcolo una statistica per ogni gruppo  
+
+👉 **mean(consumo)** → Consumo medio per gruppo  
+
+👉 **arrange(desc(...))** → Ordino dal più alto al più basso  
+
+💥 Questo è uno dei pattern più importanti in assoluto:
+group_by + summarise
+
+---
+
+### 🔹 9) Filtrare e analizzare per gruppi
+
+```{r}
+# Considero solo le auto con più di 100 cavalli
+mtcars_it %>%
+  filter(hp > 100) %>%
+  group_by(cyl) %>%
+  summarise(potenza_media = mean(hp)) %>%
+  arrange(desc(potenza_media))
+```
+
+
+### 🔹 10) Funzione per mediana, quartili e IQR
+
+```{r}
+# Definisco la funzione
+statistiche <- function(x) {
+  list(
+    mediana = median(x),
+    quartile_1 = quantile(x, 0.25),
+    quartile_3 = quantile(x, 0.75),
+    IQR = IQR(x)
+  )
+}
+
+# Applico la funzione alla variabile consumo
+statistiche(mtcars_it$consumo)
+```
+
+---
+
+## 💡 Concetti IMPORTANTI
+
+Qui definisco una funzione in R:  
+
+👉 **function(x)** → definisco una funzione con input x  
+
+👉 **median(x)** → calcolo la mediana  
+
+👉 **quantile(x, 0.25)** → primo quartile (Q1)  
+👉 **quantile(x, 0.75)** → terzo quartile (Q3)  
+
+👉 **IQR(x)** → intervallo interquartile  
+
+👉 **list(...)** → restituisco più valori insieme  
+
+💥 Creo una funzione riutilizzabile per qualsiasi vettore  
+
+---
+
+### 🔹 11) e 12) Tabelle di frequenza
+
+```{r}
+# Frequenza assoluta del numero di cilindri
+freq_assoluta <- table(mtcars_it$cyl)
+freq_assoluta
+
+# Frequenza relativa
+freq_relativa <- prop.table(freq_assoluta)
+freq_relativa
+
+# Modalità (valore più frequente)
+moda <- names(which.max(freq_assoluta))
+moda
+
+# Tabella a doppia entrata tra cilindri e marce
+tabella <- table(mtcars_it$cyl, mtcars_it$gear)
+tabella
+
+# Frequenze relative per riga
+prop.table(tabella, margin = 1)
+```
+
+ 
 ## Parte B: descrizione grafica
 
 1.  Rappresentare con un istogramma la variabile `consumo`; cosa possiamo dire della sua distribuzione?
 2.  Costruire un istogramma della variabile `peso` e sovrapporre la curva di densità;
 3.  Costruire un boxplot (per gruppi) della variabile `consumo` rispetto alla variabile `cyl`; sembrano esserci differenze tra i vari gruppi?
 
+# 📌 Parte B — Descrizione grafica
+
+### 🔹 1) Istogramma del consumo
+
 ```{r}
-# to-do
+# Istogramma del consumo
+hist(mtcars_it$consumo,
+     main = "Distribuzione del consumo",
+     xlab = "Consumo (km/l)",
+     col = "lightblue")
 ```
+
+
+
+### 🔹 2) Istogramma del peso con densità
+
+```{r}
+# Istogramma del peso
+hist(mtcars_it$peso,
+     main = "Distribuzione del peso",
+     xlab = "Peso (kg)",
+     col = "lightgreen",
+     probability = TRUE)
+
+# Aggiungo la curva di densità
+lines(density(mtcars_it$peso), col = "red", lwd = 2)
+```
+
+
+### 🔹 3) Boxplot del consumo per cilindri
+
+```{r}
+# Boxplot del consumo rispetto ai cilindri
+boxplot(consumo ~ cyl,
+        data = mtcars_it,
+        main = "Consumo per numero di cilindri",
+        xlab = "Numero di cilindri",
+        ylab = "Consumo (km/l)",
+        col = "orange")
+```
+
 
 # 2. Esercizio con Dataset
 
@@ -106,15 +387,213 @@ i.  Costruire le tabelle di frequenza assoluta e relativa della variabile `sport
 
 j.  Creare una variabile che distingua tra colore che si allenano almeno 3 giorni alla settimana e coloro che si allenano meno frequentemente, poi costruire una tabella a doppia entrata tra questa nuova variabile e `sport`. Calcolare poi le frequenze relative e commentare se lo sport praticato sembra associato alla frequenza di allenamento.
 
+
+## ✏️ Svolgimento
+
+### 🔹 1) Esplorazione del dataset
+
 ```{r}
-# to-do
+# Carico il dataset
+Sport <- read.csv("Sport.csv")
+
+# Prime righe
+head(Sport)
+
+# Struttura
+str(Sport)
+
+# Statistiche
+summary(Sport)
+
+# Numero osservazioni e variabili
+dim(Sport)
+
+# Controllo valori mancanti
+colSums(is.na(Sport))
 ```
+---
+
+## 💥 RISPOSTA:
+
+Il dataset contiene:
+
+- **50 osservazioni** e **6 variabili**
+
+👉 Variabili:
+
+- **sport** → categoriale (character)  
+- **giorni_allenamento** → numerica (intera)  
+- **ore_sonno** → numerica (continua)  
+- **passi_giornalieri** → numerica (intera)  
+- **calorie_giornaliere** → numerica (intera)  
+- **frequenza_cardiaca_riposo** → numerica (intera)  
+
+👉 Valori mancanti:
+
+- **ore_sonno** → 5 valori mancanti  
+- **calorie_giornaliere** → 3 valori mancanti  
+
+💥 Il dataset presenta quindi alcuni valori mancanti da considerare nelle analisi
+
+---
+
+### 🔹 Domande (a, b, c):
+
+```{r}
+# a) Media passi giornalieri
+mean(Sport$passi_giornalieri)
+
+# b) Frequenza cardiaca media (almeno 3 allenamenti)
+Sport %>%
+  filter(giorni_allenamento >= 3) %>%
+  summarise(media_fc = mean(frequenza_cardiaca_riposo))
+
+# c) Sport con più passi medi
+Sport %>%
+  group_by(sport) %>%
+  summarise(passi_medi = mean(passi_giornalieri)) %>%
+  arrange(desc(passi_medi))
+```
+
+---
+
+## 💥 Risposte
+
+a): Il numero medio di passi giornalieri è pari a **9834.84**.  
+
+b): La frequenza cardiaca media a riposo dei soggetti che si allenano almeno 3 volte a settimana è pari a **65.63 bpm**.  
+
+c): Lo sport con il maggior numero medio di passi giornalieri è la **corsa**.    
+
+---
+
+### 🔹 Domande (d, e, f):
+
+```{r}
+# d) Frequenza cardiaca media per sport
+Sport %>%
+  group_by(sport) %>%
+  summarise(fc_media = mean(frequenza_cardiaca_riposo))
+
+# e) Frequenza cardiaca media per sport (solo passi > 8000)
+Sport %>%
+  filter(passi_giornalieri > 8000) %>%
+  group_by(sport) %>%
+  summarise(fc_media = mean(frequenza_cardiaca_riposo))
+
+# f) Media passi senza il massimo
+mean(Sport$passi_giornalieri[Sport$passi_giornalieri != max(Sport$passi_giornalieri)])
+```
+
+---
+
+## 💥 Risposte
+
+d): La frequenza cardiaca media varia tra gli sport; i valori più bassi si osservano per **palestra** e **yoga**, mentre i più alti per **nuoto** e **corsa**.  
+
+e): Considerando solo chi supera 8000 passi, la frequenza cardiaca media tende a diminuire, con valori più bassi per **yoga** e **palestra**.  
+
+f): Escludendo il valore massimo, la media dei passi scende a **9178.16**, indicando la presenza di un outlier.  .  
+
+---
+
+### 🔹 Domanda g:
+
+```{r}
+# Creo indice_salute
+Sport <- Sport %>%
+  mutate(indice_salute = passi_giornalieri / frequenza_cardiaca_riposo)
+
+# Prendo i 3 individui con valore più alto
+Sport %>%
+  arrange(desc(indice_salute)) %>%
+  head(3)
+```
+
+---
+ 
+## 💥 Risposta
+
+g): I tre individui con il valore più alto dell’indice di salute praticano **nessuno**, **palestra** e **corsa**.  
+
+
+---
+
+### 🔹 Domande (h, i, j):
+
+```{r}
+# h) Relazione tra allenamento e frequenza cardiaca
+Sport %>%
+  group_by(giorni_allenamento) %>%
+  summarise(fc_media = mean(frequenza_cardiaca_riposo))
+
+# i) Frequenza assoluta e relativa dello sport
+freq_sport <- table(Sport$sport)
+freq_sport
+
+prop.table(freq_sport)
+
+# j) Nuova variabile (>=3 allenamenti) e tabella
+Sport <- Sport %>%
+  mutate(allenamento_freq = ifelse(giorni_allenamento >= 3, "alto", "basso"))
+
+tabella <- table(Sport$allenamento_freq, Sport$sport)
+tabella
+
+prop.table(tabella, margin = 1)
+```
+
+---
+
+## 💥 Risposte
+
+h): Aumentando i giorni di allenamento, la frequenza cardiaca media tende a diminuire.  
+
+i): Lo sport più praticato è la **palestra (26%)**, seguito da **nessuno (24%)** e **corsa (22%)**.  
+
+j): Gli individui con allenamento alto praticano soprattutto **corsa** e **palestra**, mentre quelli con allenamento basso sono prevalentemente nel gruppo **nessuno**.  
+
+---
 
 ## Parte B: descrizione grafica
 
 1.  Costruire un istogramma della variabile `passi_giornalieri` e commentare l'eventuale presenza di valori anomali;
 2.  Costruire un boxplot della frequenza cardiaca a riposo per sport; dal boxplot, possiamo osservare se ci siano differenze sulla frequenza cardiaca a seconda dello sport?
 
+## 📌 Parte B — Descrizione grafica
+
+### 🔹 1) Istogramma dei passi giornalieri
+
 ```{r}
-# to-do
+hist(Sport$passi_giornalieri,
+     main = "Distribuzione passi giornalieri",
+     xlab = "Passi giornalieri",
+     col = "lightblue")
 ```
+
+---
+
+## 💥 Risposta
+
+La distribuzione dei passi giornalieri mostra valori molto elevati rispetto agli altri, suggerendo la presenza di possibili **outlier**.
+
+---
+
+### 🔹 2) Boxplot frequenza cardiaca per sport
+
+```{r}
+boxplot(frequenza_cardiaca_riposo ~ sport,
+        data = Sport,
+        main = "Frequenza cardiaca a riposo per sport",
+        xlab = "Sport",
+        ylab = "Frequenza cardiaca (bpm)",
+        col = "orange")
+```
+
+---
+
+## 💥 Risposta
+
+Dal boxplot si osservano differenze tra gli sport: alcune attività presentano valori medi più bassi (come **palestra** e **yoga**), mentre altre mostrano valori più elevati.
+
+---
