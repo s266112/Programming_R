@@ -1,6 +1,17 @@
+# R / RStudio
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 .positai
+
+# Sistema
 desktop.ini
+.DS_Store
+
+# File LaTeX / PDF build
+*.log
+*.aux
+*.out
+*.toc
+*.tex

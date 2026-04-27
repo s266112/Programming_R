@@ -1,0 +1,644 @@
+---
+title: "Soluzione - Homework 2"
+author: "Alessio Matessi"
+date: "2026-04-27"
+output: 
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+# Esercizio 1
+
+Il file `nazioni.csv` contiene informazioni su 105 Nazioni e per ognuna di esse riporta:
+
+- `areaGeo`: la regione geografica  
+- `reddito`: il reddito pro capite in dollari  
+- `infmort`: il tasso di mortalità infantile (morti ogni 100 nascite)  
+- `oil`: se il paese esporta petrolio (1: no; 2: sì)  
+
+Dopo aver caricato opportunamente il data frame ed eliminato le righe contenenti valori mancanti, si svolgano i seguenti punti:
+
+a) Per le variabili presenti nel dataset, si specifichi se si tratta di variabili qualitative sconnesse, ordinali o quantitative discrete, motivando la risposta.  
+
+b) Per la variabile `reddito`, identificare quali nazioni sono considerate “outlier” (valori anomali) secondo il metodo del boxplot.  
+
+c) Rappresentare con un istogramma la distribuzione del `reddito`. Modificare l’etichetta dell’asse x con il nome della variabile ed eliminare il titolo. Quindi aggiungere al grafico la linea di densità stimata con il metodo del nucleo. Infine, aggiungere al grafico le mediane del reddito per area geografica utilizzando dei punti di forma e colore diverso.  
+
+d) Si calcolino media, media troncata e mediana di `reddito`. Confrontando media e mediana, cosa puoi dedurre sull’asimmetria della distribuzione del reddito? Quindi, calcolare l’indice di asimmetria (skewness) per `reddito`.  
+
+e) Applicare una trasformazione logaritmica alla variabile `reddito` ed aggiungere la nuova variabile al data frame. Confrontare l’istogramma del reddito originale con quello del log(`reddito`).  
+
+f) Effettuare un confronto sulla dispersione di `reddito` per area geografica mediante almeno due indici di dispersione.  
+
+g) Rappresentare in un unico grafico le funzioni di ripartizione empiriche (`ecdf`) del reddito per area geografica.  
+
+h) Rappresentare con boxplot la distribuzione di `infmort` condizionata alla regione geografica.  
+
+i) Utilizzando il pacchetto `lattice`, visualizzare la densità della mortalità infantile condizionata all’area geografica.  
+
+j) Dopo aver aggiunto al dataframe la variabile `redditoCat` (divisione in quartili), stampare le distribuzioni condizionate rispetto all’esportazione di petrolio.
+
+## ✏️ Svolgimento
+
+```{r}
+# Caricamento del dataset
+nazioni <- read.csv("nazioni.csv")
+
+# Controllo struttura iniziale
+str(nazioni)
+
+# Controllo valori mancanti
+colSums(is.na(nazioni))
+
+# Eliminazione delle righe con valori mancanti
+nazioni <- na.omit(nazioni)
+
+# Controllo dimensione finale
+dim(nazioni)
+```
+
+
+### 🔹 Punto a)
+
+---
+
+## 💥 Risposta
+
+La variabile `areaGeo` è una variabile *qualitativa sconnessa*, in quanto rappresenta categorie non ordinate.
+
+La variabile `reddito` è una variabile *quantitativa discreta*, poiché assume valori numerici interi (reddito pro capite espresso in dollari).
+
+La variabile `infmort` è una variabile *quantitativa continua*, in quanto rappresenta un tasso che può assumere valori reali.
+
+La variabile `oil` è una variabile *qualitativa sconnessa*, in quanto identifica una categoria (paese esportatore o non esportatore di petrolio).
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Boxplot della variabile reddito
+boxplot(nazioni$reddito, main = "", xlab = "reddito")
+
+# Individuazione degli outlier
+outlier_reddito <- boxplot.stats(nazioni$reddito)$out
+
+outlier_reddito
+```
+---
+
+## 💥 Risposta
+
+Sono stati individuati i valori anomali della variabile `reddito` utilizzando il metodo del *boxplot*.  
+
+I valori anomali della variabile `reddito` sono: **3426, 3346, 4751, 5029, 3312, 3403, 5040, 3292, 4103, 3723, 4102, 5596, 2963, 5523, 3010**.
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+# Istogramma del reddito
+hist(nazioni$reddito,
+     main = "Distribuzione del reddito",
+     xlab = "reddito",
+     col = "lightgray",
+     probability = TRUE)
+
+# Curva di densità (kernel)
+lines(density(nazioni$reddito), col = "blue", lwd = 2)
+
+# Mediane per area geografica
+mediane <- tapply(nazioni$reddito, nazioni$areaGeo, median)
+
+# Aggiunta delle mediane come punti
+points(mediane, rep(0, length(mediane)),
+       col = c("red","blue","green","black"),
+       pch = 19)
+```
+
+---
+
+## 💥 Risposta
+
+La distribuzione del reddito è *asimmetrica a destra*, con una coda verso valori elevati.
+
+---
+
+### 🔹 Punto d)
+
+```{r}
+# Media
+mean(nazioni$reddito)
+
+# Media troncata (10%)
+mean(nazioni$reddito, trim = 0.1)
+
+# Mediana
+median(nazioni$reddito)
+
+# Skewness (calcolo manuale)
+skewness <- mean((nazioni$reddito - mean(nazioni$reddito))^3) /
+            sd(nazioni$reddito)^3
+
+skewness
+```
+
+---
+
+## 💥 Risposta
+
+La **media** del reddito è pari a **1005.93**, la **media troncata** è pari a **711.99** e la **mediana** è pari a **334**.
+
+Poiché la **media è maggiore della mediana**, si deduce che la distribuzione del reddito è *asimmetrica a destra*.
+
+L’indice di *skewness* è pari a **1.76**, confermando una forte asimmetria positiva.
+
+---
+
+### 🔹 Punto e)
+
+```{r}
+# Trasformazione logaritmica
+nazioni$log_reddito <- log(nazioni$reddito)
+
+# Layout 1x2 per confronto
+par(mfrow = c(1, 2))   # Per affiancare i due grafici
+
+# Istogramma reddito originale
+hist(nazioni$reddito,
+     main = "Reddito",                 # Titolo
+     xlab = "reddito",          # Etichetta asse x
+     col = "lightgray")         # Colore barre
+
+# Istogramma log(reddito)
+hist(nazioni$log_reddito,
+     main = "Log (reddito)",                 
+     xlab = "log(reddito)",     
+     col = "lightgray")         
+
+# Ripristino layout
+par(mfrow = c(1, 1))   # Torna a 1 grafico
+
+# Skewness su reddito trasformato
+skew_log <- mean((nazioni$log_reddito - mean(nazioni$log_reddito))^3) /
+            sd(nazioni$log_reddito)^3
+
+skew_log
+```
+
+---
+
+## 💥 Risposta
+
+La trasformazione logaritmica rende la distribuzione più *simmetrica*.  
+
+Lo skewness passa da **1.76** a **0.45**, riducendo l’asimmetria.
+
+---
+
+### 🔹 Punto f)
+
+```{r}
+# Deviazione standard per area geografica
+tapply(nazioni$reddito, nazioni$areaGeo, sd)
+
+# Range (max - min) per area geografica
+tapply(nazioni$reddito, nazioni$areaGeo, function(x) max(x) - min(x))
+```
+
+---
+
+## 💥 Risposta
+
+La dispersione del reddito è maggiore in **Europe** e **Americas**, mentre è più contenuta in **Africa**.
+
+---
+
+### 🔹 Punto g)
+
+```{r}
+# ECDF Africa
+plot(ecdf(nazioni$reddito[nazioni$areaGeo == "Africa"]),
+     col = "red",       # Colore linea
+     lwd = 2,           # Spessore linea
+     main = "ECDF del reddito per area geografica",         # Titolo
+     xlab = "reddito",  # Etichetta asse x
+     ylab = "F(x)")     # Etichetta asse y
+
+# ECDF altre aree
+lines(ecdf(nazioni$reddito[nazioni$areaGeo == "Americas"]),
+      col = "blue", lwd = 2)
+
+lines(ecdf(nazioni$reddito[nazioni$areaGeo == "Asia"]),
+      col = "green", lwd = 2)
+
+lines(ecdf(nazioni$reddito[nazioni$areaGeo == "Europe"]),
+      col = "black", lwd = 2)
+
+# Linea riferimento 5000
+abline(v = 5000, lty = 2)   # Linea verticale tratteggiata
+
+# Legenda
+legend("bottomright",
+       legend = c("Africa", "Americas", "Asia", "Europe"),
+       col = c("red", "blue", "green", "black"),
+       lwd = 2)
+```
+
+---
+
+## 💥 Risposta
+
+L’area **Africa** presenta una percentuale maggiore di nazioni con reddito inferiore a **5000 dollari**, seguita da **Asia** e **Americas**.
+
+L’area **Europe** mostra invece redditi mediamente più elevati.
+
+---
+
+### 🔹 Punto h)
+
+```{r}
+# Boxplot della mortalità infantile per area geografica
+boxplot(infmort ~ areaGeo, data = nazioni,
+        main = "Distribuzione di infmort per area geografica",  # titolo
+        xlab = "areaGeo",                                      # asse x
+        ylab = "infmort",                                      # asse y
+        col = "lightgray")                                     # colore box
+```
+
+---
+
+## 💥 Risposta
+
+La mortalità infantile è mediamente più elevata in **Africa**, mentre risulta più bassa in **Europe**.
+
+L’area **Asia** presenta una maggiore variabilità, con presenza di valori molto elevati.
+
+---
+
+### 🔹 Punto i)
+
+```{r}
+# Libreria lattice
+library(lattice)
+
+# Densità condizionata
+densityplot(~ infmort | areaGeo, data = nazioni,
+            main = "Densità di infmort per area geografica",
+            xlab = "infmort")
+```
+
+---
+
+## 💥 Risposta
+
+La distribuzione della mortalità infantile è più concentrata su valori bassi in **Europe** e **Americas**.
+
+Le aree **Africa** e **Asia** mostrano invece distribuzioni più disperse, con presenza di valori più elevati.
+
+---
+
+### 🔹 Punto j)
+
+```{r}
+# Creazione redditoCat (quartili)
+nazioni$redditoCat <- cut(nazioni$reddito,
+                          breaks = quantile(nazioni$reddito,
+                                            probs = seq(0, 1, 0.25)),
+                          include.lowest = TRUE)
+
+# Tabella distribuzioni condizionate
+tab <- prop.table(table(nazioni$redditoCat, nazioni$oil), 2)
+
+# Arrotondamento
+round(tab, 2)
+
+# Grafico
+barplot(tab,
+        beside = TRUE,
+        col = c("red", "green"),   # no = rosso, yes = verde
+        main = "Distribuzione di redditoCat per oil",
+        xlab = "Classi di reddito")
+
+# Legenda
+legend("topright",
+       legend = c("no", "yes"),
+       fill = c("red", "green"))
+
+```
+
+---
+
+## 💥 Risposta
+
+Tra i paesi esportatori di petrolio (**yes**) si osserva una maggiore concentrazione nelle classi di reddito più elevate.
+
+I paesi non esportatori (**no**) risultano invece più distribuiti tra le classi di reddito più basse.
+
+---
+
+
+# Esercizio 2
+
+Il dataset `insurance.csv` descrive le spese mediche sostenute da una compagnia assicurativa statunitense per 1338 soggetti.
+
+Le variabili presenti nel dataset sono:
+
+- `age`: età dell’assicurato  
+- `sex`: genere dell’assicurato  
+- `bmi`: indice di massa corporea  
+- `children`: numero di figli a carico  
+- `smoker`: fumatore  
+- `region`: area di residenza  
+- `charges`: spese mediche  
+
+Si svolgano i seguenti punti:
+
+a) Rappresentare graficamente la distribuzione delle variabili categoriali evidenziando con un colore diverso la categoria più frequente.  
+
+b) In un unico grafico, ottenere i boxplot di `charges` rispetto a `children` (0, 1, 2, 3+), aggiungendo la media come barra rossa.  
+
+c) Creare la variabile `bmicat` e rappresentare gli istogrammi delle spese per ciascuna categoria.  
+
+d) Analizzare la relazione tra `bmicat` e `sex`.
+
+## ✏️ Svolgimento
+
+```{r}
+# Caricamento dataset
+insurance <- read.csv("insurance.csv")
+
+# Struttura
+str(insurance)
+
+# Controllo valori mancanti
+colSums(is.na(insurance))
+```
+
+### 🔹 Punto a)
+
+```{r}
+# Variabili categoriali: sex, smoker, region
+
+# SEX
+tab_sex <- table(insurance$sex)
+col_sex <- ifelse(tab_sex == max(tab_sex), "red", "lightgray")
+
+barplot(tab_sex,
+        col = col_sex,
+        main = "Distribuzione sex")
+
+# SMOKER
+tab_smoker <- table(insurance$smoker)
+col_smoker <- ifelse(tab_smoker == max(tab_smoker), "red", "lightgray")
+
+barplot(tab_smoker,
+        col = col_smoker,
+        main = "Distribuzione smoker")
+
+# REGION
+tab_region <- table(insurance$region)
+col_region <- ifelse(tab_region == max(tab_region), "red", "lightgray")
+
+barplot(tab_region,
+        col = col_region,
+        main = "Distribuzione region")
+```
+
+---
+
+## 💥 Risposta
+
+Per ciascuna variabile categoriale è stata rappresentata la distribuzione tramite diagramma a barre.
+
+È stata evidenziata in rosso la categoria più frequente: **male** per `sex`, **no** per `smoker` e **southeast** per `region`.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Creazione nuova variabile childrenCat
+insurance$childrenCat <- ifelse(insurance$children >= 3, "3+", as.character(insurance$children))
+
+# Boxplot
+boxplot(charges ~ childrenCat, data = insurance,
+        main = "Distribuzione charges per children",  # Titolo
+        xlab = "children",                            # Asse x
+        ylab = "charges",                             # Asse y
+        col = "lightgray")                            # Colore box
+
+# Media per ciascuna categoria
+medie <- tapply(insurance$charges, insurance$childrenCat, mean)
+
+# Aggiunta media come barre rosse
+segments(x0 = 1:length(medie) - 0.2,
+         x1 = 1:length(medie) + 0.2,
+         y0 = medie,
+         y1 = medie,
+         col = "red",   # Colore media
+         lwd = 2)       # Spessore linea
+```
+
+---
+
+## 💥 Risposta
+
+Le spese mediche risultano simili tra le diverse categorie di `children`, con una leggera tendenza ad aumentare al crescere del numero di figli.
+
+Le medie, rappresentate in rosso, confermano questa tendenza.
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+# Creazione bmicat
+insurance$bmicat <- cut(insurance$bmi,
+                        breaks = c(-Inf, 18.5, 25, 30, Inf),
+                        labels = c("underweight", "normal", "overweight", "obese"))
+
+# Layout 2x2
+par(mfrow = c(2, 2))   # 4 grafici
+
+# Istogrammi per categoria
+for(cat in levels(insurance$bmicat)) {
+  hist(insurance$charges[insurance$bmicat == cat],
+       main = cat,                       # Titolo
+       xlab = "charges",
+       col = "lightgray",
+       xlim = range(insurance$charges))  # Stessa scala asse x
+}
+
+# Ripristino
+par(mfrow = c(1, 1))
+```
+
+---
+
+## 💥 Risposta
+
+Le spese mediche tendono ad aumentare al crescere della categoria di BMI.
+
+In particolare, la categoria **obese** presenta valori mediamente più elevati e maggiore variabilità rispetto alle altre.
+
+---
+
+### 🔹 Punto d)
+
+```{r}
+# Tabella di contingenza
+tab_bmi_sex <- table(insurance$bmicat, insurance$sex)
+
+# Frequenze condizionate (per sesso)
+tab_rel <- prop.table(tab_bmi_sex, 2)
+
+round(tab_rel, 2)
+
+# Colori progressivi (dal chiaro allo scuro)
+colori <- c("lightblue", "skyblue", "deepskyblue", "blue")
+
+# Grafico
+barplot(tab_rel,
+        beside = TRUE,
+        col = colori,
+        main = "Distribuzione di bmicat per sesso",
+        xlab = "Sesso",
+        ylab = "Frequenza relativa")
+
+# Legenda
+legend("topright",
+       legend = rownames(tab_rel),
+       fill = colori,
+       title = "bmicat")
+```
+
+---
+
+## 💥 Risposta
+
+La distribuzione delle categorie di BMI è simile tra i due sessi, indicando una debole associazione tra `bmicat` e `sex`.
+
+Si osserva una leggera maggiore presenza della categoria **obese** tra i **male**, ma le differenze complessive sono limitate.
+
+---
+
+# Esercizio 3
+
+Si consideri il seguente dataset (file `.txt`) che riporta il livello di istruzione e la destinazione lavorativa.
+
+Si svolgano i seguenti punti:
+
+a) Costruire la tabella di contingenza tra livello di istruzione e destinazione lavorativa.  
+
+b) Calcolare le distribuzioni marginali.  
+
+c) Calcolare le distribuzioni condizionate.  
+
+d) Rappresentare graficamente i risultati ottenuti.
+
+
+## ✏️ Svolgimento
+
+```{r}
+# Creazione manuale del dataset (da tabella fornita)
+istruzione <- c("Laurea", "Diploma", "Media", "Elementare")
+
+dati <- matrix(c(
+  2829, 433, 394, 431, 401,
+  9201, 1092, 733, 691, 1256,
+  14764, 877, 531, 337, 1652,
+  14759, 1119, 71, 42, 319
+), nrow = 4, byrow = TRUE)
+
+colnames(dati) <- c("Casa", "Mensa", "Rist", "Bar", "PostoLav")
+rownames(dati) <- istruzione
+
+dati
+```
+
+### 🔹 Punto a)
+
+---
+
+## 💥 Risposta
+
+La tabella di contingenza tra livello di istruzione e destinazione lavorativa è stata costruita correttamente.
+
+---
+
+
+
+### 🔹 Punto b)
+
+```{r}
+# Marginale per istruzione (righe)
+margin.table(dati, 1)
+
+# Marginale per destinazione (colonne)
+margin.table(dati, 2)
+```
+
+---
+
+## 💥 Risposta
+
+La distribuzione marginale mostra che il livello di istruzione più frequente è **Media**, mentre la destinazione lavorativa più comune è **Casa**.
+
+---
+
+### 🔹 Punto c)
+
+```{r}
+# Distribuzioni condizionate per istruzione (righe)
+round(prop.table(dati, 1), 2)
+
+# Distribuzioni condizionate per destinazione (colonne)
+round(prop.table(dati, 2), 2)
+```
+
+---
+
+## 💥 Risposta
+
+Condizionando per livello di istruzione, si osserva che all’aumentare del titolo di studio diminuisce la quota di persone che restano a **Casa**.
+
+Condizionando per destinazione lavorativa, si nota che le attività come **Rist** e **Bar** sono associate principalmente a livelli di istruzione più elevati.
+
+---
+
+### 🔹 Punto d)
+
+```{r}
+# Colori distinti per le destinazioni
+colori <- c("red", "blue", "green", "orange", "purple")
+
+# Grafico distribuzioni per istruzione
+barplot(prop.table(dati, 1),
+        beside = TRUE,                         # Barre affiancate
+        col = colori,                          # Colori barre
+        main = "Distribuzione destinazione per istruzione",  # Titolo
+        xlab = "Livello di istruzione")        # Asse x
+
+# Legenda
+legend("topright",
+       legend = colnames(dati),               # Nomi destinazioni
+       fill = colori)                         # Colori legenda
+```
+
+---
+
+## 💥 Risposta
+
+Si osserva che la destinazione **Casa** è prevalente per tutti i livelli di istruzione, in particolare per i livelli più bassi.
+
+Le altre destinazioni risultano meno frequenti e mostrano una maggiore presenza tra i livelli di istruzione più elevati.
+
+---
