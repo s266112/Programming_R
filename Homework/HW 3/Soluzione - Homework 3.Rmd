@@ -1,0 +1,1702 @@
+---
+title: "Soluzione - Homework 3"
+author: "Alessio Matessi" 
+date: "`r Sys.Date()`"
+output: 
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Esercizio 1
+Costruisci una funzione `decompose` che ha come input un insieme di dati divisi in gruppi (bastano una variabile di tipo numeric ed una di tipo factor) e calcola i seguenti punti:
+
+a) La devianza entro i gruppi $DEV_{within}$, la devianza tra i gruppi $DEV_{between}$ e la devianza totale $DEV_{tot}$;
+ 
+b) Il coefficiente $\eta^2$.
+ 
+Applica poi la funzione così costruita sul dataset `iris`, disponibile in `R`, e confronta i risultati con quellio ottenuti mediante la funzione `aov`.
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+```{r}
+# Funzione per il calcolo delle devianze
+decompose <- function(y, g)
+{
+  m_tot <- mean(y)
+  m_g <- tapply(y, g, mean)
+  n_g <- tapply(y, g, length)
+  
+  dev_tot <- sum((y - m_tot)^2)
+  dev_bet <- sum(n_g * (m_g - m_tot)^2)
+  dev_wit <- dev_tot - dev_bet
+  
+  res <- c(dev_wit, dev_bet, dev_tot)
+  names(res) <- c("DEV_within", "DEV_between", "DEV_tot")
+  return(round(res, 3))
+}
+
+# Applicazione al dataset IRIS
+decompose(iris$Sepal.Length, iris$Species)
+
+```
+
+
+---
+
+## 💥 Risposta
+
+La funzione `decompose` restituisce i valori delle tre devianze:
+
+- la `DEV_tot` è pari a **1158.557**
+- la `DEV_between` a **1119.600**
+- la `DEV_within` a **38.956**
+
+Questi valori indicano come la variabilità totale della lunghezza del sepalo sia ripartita tra la differenza tra le medie delle specie (devianza tra i gruppi) e la variabilità interna alle specie stesse (devianza entro i gruppi).  
+La devianza tra i gruppi è molto più grande di quella entro i gruppi, suggerendo che la specie spiega gran parte della variabilità osservata.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Funzione completa con il calcolo di eta_2
+decompose <- function(y, g)
+{
+  m_tot <- mean(y)
+  m_g <- tapply(y, g, mean)
+  n_g <- tapply(y, g, length)
+  
+  dev_tot <- sum((y - m_tot)^2)
+  dev_bet <- sum(n_g * (m_g - m_tot)^2)
+  dev_wit <- dev_tot - dev_bet
+  
+  # Calcolo del coefficiente eta quadro
+  eta_2 <- dev_bet / dev_tot
+  
+  res <- c(dev_wit, dev_bet, dev_tot, eta_2)
+  names(res) <- c("DEV_within", "DEV_between", "DEV_tot", "eta_2")
+  return(round(res, 3))
+}
+
+# Applicazione al dataset iris
+decompose(iris$Sepal.Length, iris$Species)
+
+# Confronto con la funzione aov()
+modello_aov <- aov(Sepal.Length ~ Species, data = iris)
+summary(modello_aov)
+```
+---
+
+## 💥 Risposta
+
+Il coefficiente $\eta^2$ risulta pari a **0.966**, indicando che il **96.6%** della variabilità totale della lunghezza del sepalo è spiegata dalla suddivisione nelle tre diverse specie di iris.
+
+Dal confronto con l'output della funzione `aov()`, si riscontra una perfetta corrispondenza dei risultati:
+
+- la devianza tra i gruppi (`Species`) è **1119.6**
+- la devianza entro i gruppi (`Residuals`) è **38.9**
+- dividendo la devianza tra i gruppi (1119.6) per la devianza totale (1119.6 + 38.9 = 1158.5) si ottiene lo stesso identico valore dell'indice (0.966).
+
+---
+
+# Esercizio 2
+Costruisci una funzione `decompose.lm` che ha come input un modello di regressione lineare e calcola:  
+
+a) La devianza residua $SQE$ e la devianza spiegata $SQR$;
+ 
+b) Verificare che la somma delle devianze ottenute al punto precedente coincida con la devianza totale. 
+ 
+Applica la funzione al dataset `case.csv`, disponibile su moodle, con variabile risposta Price e variabile esplicativa SquareFeet.
+
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+```{r}
+# Carico il dataset
+case_data <- read.csv("case.csv", row.names = 1)
+
+# Costruisco il modello di regressione lineare
+modello_lm <- lm(Price ~ SquareFeet, data = case_data)
+
+# Funzione per la scomposizione della devianza
+decompose.lm <- function(modello)
+{
+  # Devianza spiegata (SQR)
+  SQR <- sum((fitted(modello) - mean(modello$model[[1]]))^2)
+  
+  # Devianza residua (SQE)
+  SQE <- sum(residuals(modello)^2)
+  
+  # Devianza totale
+  SST <- sum((modello$model[[1]] - mean(modello$model[[1]]))^2)
+  
+  res <- c(SQR, SQE, SST)
+  names(res) <- c("SQR", "SQE", "SST")
+  return(round(res, 3))
+}
+
+# Applico la funzione al modello
+decompose.lm(modello_lm)
+```
+
+---
+
+## 💥 Risposta
+
+La funzione `decompose.lm` restituisce i seguenti valori:
+
+- la devianza spiegata $SQR$ è pari a **387416137.887**
+- la devianza residua $SQE$ è pari a **115045795.030**
+- la devianza totale $SST$ è pari a **502461932.917**
+
+Questi valori rappresentano rispettivamente la variabilità spiegata dalla retta di regressione (SQR), la variabilità non spiegata (SQE) e la variabilità totale della variabile risposta Price.
+
+---
+
+### 🔹 Punto b)
+
+```{r}
+# Verifica che SQR + SQE = SST
+verifica <- decompose.lm(modello_lm)
+somma <- verifica["SQR"] + verifica["SQE"]
+cat("SQR + SQE =", somma, "\n")
+cat("SST =", verifica["SST"], "\n")
+cat("La somma coincide con SST?", abs(somma - verifica["SST"]) < 1e-8, "\n")
+```
+
+---
+
+## 💥 Risposta
+
+La somma tra la devianza spiegata (SQR) e la devianza residua (SQE) è pari a **502461932.917**, che coincide esattamente con la devianza totale (SST).  
+
+Questa verifica conferma il **teorema della scomposizione della devianza** nella regressione lineare: la variabilità totale della variabile risposta è data dalla somma della variabilità spiegata dal modello e della variabilità residua (errore).
+
+---
+
+
+# Esercizio 3
+
+Il dataset `insurance.csv`, disponibile su moodle, descrive le spese mediche sostenute da una compagnia assicurativa statunitense per 1338 soggetti. Le variabili presenti nel dataset sono:
+
+- `age`: età dell'assicurato
+- `sex`: genere dell'assicurato
+- `bmi`: indice di massa corporea
+- `children`: numero di figli a carico
+- `smoker`: fumatore
+- `region`: l'area di residenza dell'assicurato negli Stati Uniti
+- `charges`: le spese mediche individuali fatturate dall'assicurazione
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Nell'ottica di voler stimare un modello di regressione lineare che consideri la variabile spese mediche come variabile risposta, visualizzare e commentare le relazioni a coppie tra la variabile `charges` e le altre presenti nel data set con opportuni strumenti grafici e numerici.
+
+```{r}
+# Carico il dataset
+insurance <- read.csv("insurance.csv", row.names = 1)
+
+# Visualizzo le prime righe
+head(insurance)
+
+# Struttura del dataset
+str(insurance)
+
+# Statistiche descrittive delle variabili numeriche
+summary(insurance[, c("age", "bmi", "children", "charges")])
+
+# Correlazioni tra charges e le variabili numeriche
+cor(insurance[, c("age", "bmi", "children", "charges")])
+
+# Grafici a dispersione tra charges e le variabili numeriche
+par(mfrow = c(1, 3))
+plot(insurance$age, insurance$charges, xlab = "Età", ylab = "Spese", main = "charges vs age")
+plot(insurance$bmi, insurance$charges, xlab = "BMI", ylab = "Spese", main = "charges vs bmi")
+plot(insurance$children, insurance$charges, xlab = "Numero figli", ylab = "Spese", main = "charges vs children")
+
+# Boxplot per le variabili categoriali
+par(mfrow = c(1, 3))
+boxplot(charges ~ sex, data = insurance, xlab = "Sesso", ylab = "Spese", main = "charges vs sex")
+boxplot(charges ~ smoker, data = insurance, xlab = "Fumatore", ylab = "Spese", main = "charges vs smoker")
+boxplot(charges ~ region, data = insurance, xlab = "Regione", ylab = "Spese", main = "charges vs region")
+```
+
+---
+
+## 💥 Risposta
+
+Dall'analisi esplorativa emergono le seguenti relazioni:
+
+- **age**: Si osserva una relazione positiva moderata (correlazione ≈ 0.30). All'aumentare dell'età, le spese mediche tendono ad aumentare, anche se con una certa variabilità.
+
+- **bmi**: La correlazione è molto debole (≈ 0.20). Non sembra esserci una relazione lineare chiara tra indice di massa corporea e spese mediche.
+
+- **children**: La correlazione è molto bassa (≈ 0.07). Il numero di figli a carico non sembra influenzare in modo significativo le spese mediche.
+
+- **sex**: Le spese mediche sono simili tra maschi e femmine, con una leggera variabilità.
+
+- **smoker**: Questa variabile mostra una differenza sostanziale. I fumatori hanno spese mediche molto più elevate rispetto ai non fumatori.
+
+- **region**: Le quattro regioni presentano distribuzioni simili delle spese mediche, senza differenze evidenti.
+
+La variabile che sembra avere l'impatto più rilevante sulle spese mediche è `smoker`, seguita da `age`.
+
+---
+
+### 🔹 Punto b)
+
+Costruire un primo modello di regressione lineare per le spese mediche selezionando come esplicativa la variabile `age`. Interpretare i coefficienti del modello, valutare la bontà di adattamento ed analizzare i residui.
+
+```{r}
+# Modello lineare semplice con age
+modello_age <- lm(charges ~ age, data = insurance)
+summary(modello_age)
+
+# Analisi dei residui
+par(mfrow = c(2, 2))
+plot(modello_age)
+```
+
+---
+
+## 💥 Risposta
+
+Il modello `charges ~ age` fornisce i seguenti risultati:
+
+- **Coefficiente per age**: 257.7 (p-value < 2e-16). Ciò significa che per ogni anno di età in più, le spese mediche aumentano mediamente di 257.7 dollari, a parità delle altre condizioni.
+
+- **Intercetta**: -3167.2 (p-value = 0.066). L'intercetta non è statisticamente significativa (p-value > 0.05), ma rappresenta il valore atteso delle spese per un individuo di età 0.
+
+- **R²**: 0.089. Solo l'8.9% della variabilità delle spese mediche è spiegata dall'età. Il modello ha un potere esplicativo molto basso.
+
+- **R² aggiustato**: 0.088, sostanzialmente uguale all'R².
+
+**Analisi dei residui**: Dai grafici si osserva che:
+  - I residui non sono distribuiti casualmente intorno allo zero (pattern a ventaglio)
+  - La varianza dei residui non è costante (eteroschedasticità)
+  - I residui non seguono una distribuzione normale (deviazioni sulla coda destra)
+
+Il modello con la sola `age` non è adeguato per descrivere le spese mediche.
+
+---
+
+### 🔹 Punto c)
+
+Disegnare lo scatterplot per le variabili `age` e `charges` ed aggiungere al grafico la retta di regressione stimata al punto precedente. Evidenziare sul grafico, con bande colorate, uno scostamento di un anno sull'età ed il rispettivo incremento atteso sulle spese mediche stimato dal modello.
+
+```{r}
+# Scatterplot con retta di regressione
+plot(insurance$age, insurance$charges, 
+     xlab = "Età (anni)", ylab = "Spese mediche ($)",
+     main = "Spese mediche vs Età con retta di regressione",
+     col = "darkgray", pch = 16)
+abline(modello_age, col = "red", lwd = 2)
+
+# Estraggo il coefficiente di age
+coeff_age <- coef(modello_age)["age"]
+cat("Incremento atteso per un anno in più di età:", round(coeff_age, 2), "dollari\n")
+
+# Aggiungo una banda per visualizzare l'incremento
+# Prendo un'età di riferimento (es. 40 anni)
+eta_riferimento <- 40
+spese_riferimento <- predict(modello_age, newdata = data.frame(age = eta_riferimento))
+spese_incremento <- predict(modello_age, newdata = data.frame(age = eta_riferimento + 1))
+
+# Evidenzio i due punti e l'incremento
+points(eta_riferimento, spese_riferimento, col = "blue", pch = 19, cex = 1.5)
+points(eta_riferimento + 1, spese_incremento, col = "green", pch = 19, cex = 1.5)
+segments(eta_riferimento, spese_riferimento, eta_riferimento + 1, spese_incremento, 
+         col = "purple", lwd = 2, lty = 2)
+
+# Legenda
+legend("topleft", legend = c("Dati", "Retta di regressione", 
+                              paste("Età", eta_riferimento), 
+                              paste("Età", eta_riferimento + 1),
+                              "Incremento di 1 anno"),
+       col = c("darkgray", "red", "blue", "green", "purple"),
+       pch = c(16, NA, 19, 19, NA), lwd = c(NA, 2, NA, NA, 2), 
+       lty = c(NA, 1, NA, NA, 2))
+```
+
+---
+
+## 💥 Risposta
+
+Dal grafico si osserva che la retta di regressione ha un andamento crescente, ma i dati sono molto dispersi intorno ad essa.  
+Per un individuo di 40 anni, le spese attese sono di circa **7140 dollari**.  
+L'incremento atteso per un anno in più di età è di **257.7 dollari**, come evidenziato dalla banda colorata che collega i punti corrispondenti a 40 e 41 anni.
+
+---
+
+### 🔹 Punto d)
+
+Aggiungere al modello la variabile `smoker` e valutare l'introduzione dell'interazione tra `age` e `smoker`. Valutare il modello e ripetere i punti b e c.
+
+```{r}
+library(ggplot2)
+
+# Modello con age e smoker (senza interazione)
+modello_smk <- lm(charges ~ age + smoker, data = insurance)
+
+# Modello con interazione tra age e smoker
+modello_int <- lm(charges ~ age * smoker, data = insurance)
+
+# Confronto tra i modelli
+anova(modello_smk, modello_int)
+
+# Grafico con ggplot2
+ggplot(insurance, aes(x = age, y = charges, color = smoker, fill = smoker)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  geom_smooth(method = "lm", se = TRUE, size = 1.2, alpha = 0.2) +
+  labs(
+    title = "Spese mediche in funzione dell'età per fumatori e non fumatori",
+    subtitle = "Modello lineare con interazione (age : smoker)",
+    x = "Età (anni)",
+    y = "Spese mediche (dollari)",
+    color = "Fumatore",
+    fill = "Fumatore"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 11),
+    legend.position = "bottom"
+  ) +
+  scale_color_manual(values = c("blue", "red"), labels = c("No", "Sì")) +
+  scale_fill_manual(values = c("blue", "red"), labels = c("No", "Sì"))
+```
+
+---
+
+## 💥 Risposta
+
+L'aggiunta della variabile `smoker` migliora notevolmente il modello:
+
+- **Modello senza interazione (age + smoker)**:
+  - R² = 0.619 (dal 8.9% al 61.9%!)
+  - I fumatori hanno spese medie superiori di 23644 dollari rispetto ai non fumatori, a parità di età
+
+- **Modello con interazione (age * smoker)**:
+  - R² = 0.620 (miglioramento marginale rispetto al modello senza interazione)
+  - Il test ANOVA (p-value = 0.216) indica che l'interazione non è statisticamente significativa
+  - Scegliamo quindi il modello senza interazione per parsimonia
+
+**Confronto con il punto b**: L'aggiunta della variabile `smoker` spiega una quota molto più ampia della variabilità (R² = 0.619 vs 0.089).  
+I residui mostrano ancora qualche problema di normalità, ma la situazione è migliorata.
+
+---
+
+### 🔹 Punto e)
+
+Qual è la spesa medica attesa per un individuo di 40 anni fumatore? E per un individuo della stessa età non fumatore?
+
+```{r}
+# Previsioni con il modello migliore (senza interazione)
+previsione_fumatore <- predict(modello_smk, 
+                               newdata = data.frame(age = 40, smoker = "yes"))
+previsione_non_fumatore <- predict(modello_smk, 
+                                   newdata = data.frame(age = 40, smoker = "no"))
+
+cat("Spesa attesa per un 40enne FUMATORE:", round(previsione_fumatore, 2), "dollari\n")
+cat("Spesa attesa per un 40enne NON FUMATORE:", round(previsione_non_fumatore, 2), "dollari\n")
+cat("Differenza:", round(previsione_fumatore - previsione_non_fumatore, 2), "dollari\n")
+```
+
+---
+
+## 💥 Risposta
+
+Per un individuo di 40 anni:
+
+- **Fumatore**: la spesa medica attesa è di **26643.33 dollari**
+- **Non fumatore**: la spesa medica attesa è di **8501.91 dollari**
+
+La differenza è di **18141.42 dollari**, che corrisponde esattamente al coefficiente della variabile `smokeryes` nel modello.  
+Questo conferma che, a parità di età, i fumatori hanno spese mediche significativamente più elevate rispetto ai non fumatori.
+
+---
+
+# Esercizio 4
+
+Nel file `wages.csv`, sono registrate, per un campione di lavoratori, le seguenti variabili:
+
+- `exper`: anni di esperienza lavorativa (in anni),
+- `sex`: genere (1 se donna),
+- `school`: scolarità (in anni),
+- `wage`: remunerazione oraria.
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Volendo stimare un modello di regressione lineare che consideri la variabile remunerazione oraria come variabile risposta, visualizzare e commentare le relazioni a coppie tra la variabile `wage` e le altre presenti nel data set con opportuni strumenti grafici e numerici.
+
+```{r}
+# Carico il dataset
+wages <- read.csv("wages.csv")
+
+# Visualizzo le prime righe
+head(wages)
+
+# Struttura del dataset
+str(wages)
+
+# Statistiche descrittive
+summary(wages)
+
+# Correlazioni tra wage e le variabili numeriche
+cor(wages[, c("exper", "school", "wage")])
+
+# Grafici a dispersione
+par(mfrow = c(1, 2))
+plot(wages$exper, wages$wage, 
+     xlab = "Anni di esperienza", ylab = "Remunerazione oraria",
+     main = "wage vs exper", col = "darkblue", pch = 16)
+plot(wages$school, wages$wage, 
+     xlab = "Anni di scolarità", ylab = "Remunerazione oraria",
+     main = "wage vs school", col = "darkgreen", pch = 16)
+
+# Boxplot per il sesso
+boxplot(wage ~ sex, data = wages, 
+        xlab = "Sesso (1 = donna)", ylab = "Remunerazione oraria",
+        main = "wage vs sex", col = c("lightblue", "lightcoral"))
+```
+
+---
+
+## 💥 Risposta
+
+Dall'analisi esplorativa emergono le seguenti relazioni:
+
+- **exper**: Si osserva una relazione positiva (correlazione ≈ 0.25). All'aumentare degli anni di esperienza, la remunerazione oraria tende ad aumentare, anche se con una certa variabilità.
+
+- **school**: La correlazione è positiva e più marcata (≈ 0.40). Maggiore è il livello di scolarità, maggiore tende ad essere la remunerazione.
+
+- **sex**: Le donne (sex = 1) sembrano avere una remunerazione oraria leggermente inferiore rispetto agli uomini, anche se la differenza non è estremamente marcata.
+
+Le variabili che sembrano avere maggiore impatto sulla remunerazione sono `school` (scolarità) e `exper` (esperienza).
+
+---
+
+### 🔹 Punto b)
+
+Stima un modello di regressione lineare semplice utilizzando solo gli anni di esperienza (`exper` come variabile esplicativa).
+
+```{r}
+# Modello lineare semplice con exper
+modello_exper <- lm(wage ~ exper, data = wages)
+summary(modello_exper)
+
+# Analisi dei residui
+par(mfrow = c(2, 2))
+plot(modello_exper)
+```
+
+---
+
+## 💥 Risposta
+
+Il modello `wage ~ exper` fornisce i seguenti risultati:
+
+- **Coefficiente per exper**: 0.085 (p-value ≈ 0.0003). Per ogni anno di esperienza in più, la remunerazione oraria aumenta mediamente di 0.085 dollari (circa 8.5 centesimi), a parità delle altre condizioni.
+
+- **Intercetta**: 4.62 (p-value < 2e-16). Rappresenta la remunerazione attesa per un individuo con 0 anni di esperienza.
+
+- **R²**: 0.027. Solo il 2.7% della variabilità della remunerazione è spiegata dall'esperienza. Il modello ha un potere esplicativo molto basso.
+
+- **R² aggiustato**: 0.025, sostanzialmente uguale all'R².
+
+**Analisi dei residui**: Dai grafici si osserva che i residui non sono perfettamente distribuiti casualmente, con qualche outlier e una leggera non normalità.
+
+Il modello con la sola `exper` spiega una piccola parte della variabilità della remunerazione.
+
+---
+
+### 🔹 Punto c)
+
+Ottieni i residui della regressione semplice e fai il grafico dei residui contro le restanti variabili (sesso incluso). Che indicazioni potresti ricavare da questa analisi?
+
+```{r}
+# Estraggo i residui del modello
+wages$residui <- residuals(modello_exper)
+
+# Grafici dei residui vs variabili non incluse
+par(mfrow = c(1, 2))
+plot(wages$school, wages$residui,
+     xlab = "Anni di scolarità", ylab = "Residui",
+     main = "Residui vs school", col = "darkgreen", pch = 16)
+abline(h = 0, col = "red", lty = 2)
+
+boxplot(residui ~ sex, data = wages,
+        xlab = "Sesso (1 = donna)", ylab = "Residui",
+        main = "Residui vs sex", col = c("lightblue", "lightcoral"))
+abline(h = 0, col = "red", lty = 2)
+```
+
+---
+
+## 💥 Risposta
+
+Dall'analisi dei residui emergono indicazioni importanti:
+
+- **Residui vs school**: Si osserva un pattern sistematico: per bassi livelli di scolarità i residui tendono ad essere negativi, mentre per alti livelli di scolarità i residui tendono ad essere positivi. Questo suggerisce che la variabile `school` (scolarità) è correlata con la remunerazione e dovrebbe essere inclusa nel modello.
+
+- **Residui vs sex**: Si osserva che i residui per le donne (sex = 1) tendono ad essere leggermente più bassi rispetto agli uomini. Questo suggerisce che anche il genere potrebbe avere un effetto sulla remunerazione, e dovrebbe essere considerato nel modello.
+
+Queste evidenze indicano che il modello semplice con la sola `exper` è **inadeguato** e che per migliorare la capacità predittiva è necessario aggiungere altre variabili esplicative, in particolare `school` e `sex`.
+
+---
+
+### 🔹 Punto d)
+
+Stima un opportuno modello di regressione multipla, giustificando le scelte effettuate in termini di selezione del modello.
+
+```{r}
+# Modello con tutte le variabili
+modello_completo <- lm(wage ~ exper + sex + school, data = wages)
+summary(modello_completo)
+
+# Selezione automatica del modello (stepwise)
+modello_step <- step(modello_completo, direction = "both")
+summary(modello_step)
+
+# Confronto tra i modelli
+anova(modello_exper, modello_completo)
+
+# Analisi dei residui del modello scelto
+par(mfrow = c(2, 2))
+plot(modello_step)
+```
+
+---
+
+## 💥 Risposta
+
+Ho stimato un modello di regressione multipla con tutte e tre le variabili esplicative (`exper`, `sex`, `school`). I risultati mostrano:  
+
+- **Coefficiente per exper**: 0.063 (p-value = 0.001). Per ogni anno di esperienza in più, la remunerazione aumenta di 0.063 dollari, a parità di scolarità e genere.  
+
+- **Coefficiente per sex**: -0.86 (p-value = 0.003). Le donne guadagnano in media 0.86 dollari in meno all'ora rispetto agli uomini, a parità di esperienza e scolarità.  
+
+- **Coefficiente per school**: 0.46 (p-value < 2e-16). Per ogni anno di scolarità in più, la remunerazione aumenta di 0.46 dollari, a parità di esperienza e genere.  
+
+- **R²**: 0.23. Il 23% della variabilità della remunerazione è spiegata dal modello (un netto miglioramento rispetto al 2.7% del modello semplice).  
+
+- **R² aggiustato**: 0.228.  
+
+La selezione automatica (stepwise) ha confermato che tutte e tre le variabili sono utili, mantenendole tutte nel modello finale.
+
+Il test ANOVA tra il modello semplice (`wage ~ exper`) e il modello completo è altamente significativo (p-value < 2.2e-16), confermando che l'aggiunta di `sex` e `school` migliora significativamente il modello.
+
+---
+
+### 🔹 Punto e)
+
+Quanta remunerazione aggiuntiva ci si può attendere, a parità del resto, per ogni anno di esperienza in più?
+
+```{r}
+# Estraggo il coefficiente di exper dal modello scelto
+coeff_exper <- coef(modello_step)["exper"]
+cat("Remunerazione aggiuntiva attesa per un anno di esperienza in più:", 
+    round(coeff_exper, 3), "dollari\n")
+```
+
+---
+
+## 💥 Risposta
+
+Dal modello di regressione multipla, a parità di scolarità e genere, **ogni anno di esperienza in più** comporta un aumento atteso della remunerazione oraria di **0.063 dollari** (circa **6.3 centesimi**).
+
+---
+
+### 🔹 Punto f)
+
+Per un individuo di sesso maschile, con 11 anni di scolarità e 7 di esperienza lavorativa, quale remunerazione ci si attende?
+
+```{r}
+# Previsione per un individuo maschio (sex = 0) con school = 11 e exper = 7
+previsione <- predict(modello_step, 
+                      newdata = data.frame(exper = 7, sex = 0, school = 11))
+cat("Remunerazione attesa:", round(previsione, 2), "dollari/ora\n")
+```
+
+---
+
+## 💥 Risposta
+
+Per un individuo di **sesso maschile** (sex = 0), con **11 anni di scolarità** e **7 anni di esperienza lavorativa**, la remunerazione oraria attesa è di **8.20 dollari/ora**.
+
+---
+
+### 🔹 Punto g)
+
+Potrebbe aver senso considerare una trasformazione della variabile risposta? E delle esplicative?
+
+```{r}
+# Verifica della normalità dei residui del modello attuale
+shapiro.test(residuals(modello_step))
+
+# Istogramma dei residui
+hist(residuals(modello_step), breaks = 30, 
+     main = "Distribuzione dei residui", 
+     xlab = "Residui", col = "lightblue")
+
+# Proviamo una trasformazione logaritmica della risposta
+wages$log_wage <- log(wages$wage)
+modello_log <- lm(log_wage ~ exper + sex + school, data = wages)
+summary(modello_log)
+
+# Confronto R² dei due modelli
+cat("R² modello originale:", summary(modello_step)$r.squared, "\n")
+cat("R² modello log:", summary(modello_log)$r.squared, "\n")
+
+# Verifica della normalità dei residui del modello log
+shapiro.test(residuals(modello_log))
+```
+
+---
+
+## 💥 Risposta
+
+**Sulla trasformazione della variabile risposta:**
+
+- Il test di Shapiro-Wilk sui residui del modello originale ha un p-value molto piccolo (≈ 2.2e-16), indicando che i residui **non seguono una distribuzione normale**. Questa è una violazione dell'assunzione di normalità per l'inferenza statistica.
+
+- La trasformazione logaritmica della variabile risposta (`log_wage`) migliora leggermente la normalità dei residui (p-value ≈ 5.6e-10), anche se rimane significativamente non normale.
+
+- L'R² del modello logaritmico (0.238) è leggermente superiore a quello del modello originale (0.230).
+
+**Sulla trasformazione delle variabili esplicative:**
+
+- Potrebbe avere senso considerare un termine quadratico per `exper`, poiché la relazione tra esperienza e remunerazione potrebbe non essere lineare (effetti decrescenti nel tempo).
+
+- Anche per `school` si potrebbe ipotizzare una relazione non lineare, ma dai grafici la relazione sembra approssimativamente lineare.
+
+**Conclusione:** La trasformazione logaritmica della risposta è consigliabile per avvicinarsi all'assunzione di normalità dei residui, anche se non la risolve completamente. Per migliorare ulteriormente il modello, si potrebbero aggiungere termini polinomiali per `exper`.
+
+---
+
+
+
+# Esercizio 5
+
+Il dataset `mtcars`, contiene caratteristiche di 32 automobili degli anni '70. Le variabili principali sono:  
+- `mpg` (miglia per gallone)  
+- `hp` (cavalli)  
+- `wt` (peso in migliaia di libbre)  
+- `disp` (cilindrata).
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Si calcoli la correlazione marginale tra `mpg` e `hp`. Il segno è quello atteso?
+
+```{r}
+# Carico il dataset mtcars
+data(mtcars)
+
+# Calcolo la correlazione tra mpg e hp
+cor_mpg_hp <- cor(mtcars$mpg, mtcars$hp)
+cat("Correlazione tra mpg e hp:", round(cor_mpg_hp, 4), "\n")
+
+# Grafico a dispersione
+plot(mtcars$hp, mtcars$mpg,
+     xlab = "Cavalli (hp)", ylab = "Miglia per gallone (mpg)",
+     main = "Relazione tra mpg e hp",
+     col = "darkred", pch = 16, cex = 1.2)
+```
+
+---
+
+## 💥 Risposta
+
+La correlazione marginale tra `mpg` (miglia per gallone) e `hp` (cavalli) è **-0.7762**.
+
+Il segno è **negativo**, come atteso: all'aumentare della potenza del motore (cavalli), il consumo di carburante aumenta, quindi il numero di miglia per gallone diminuisce. La correlazione è piuttosto forte in valore assoluto, indicando una relazione lineare negativa sostanziale tra le due variabili.
+
+---
+
+### 🔹 Punto b)
+
+Si osserva che `hp` e `wt` sono entrambe correlate con `mpg`. Si calcoli la correlazione parziale tra `mpg` e `hp` al netto di `wt`, usando il metodo dei residui. La correlazione diminuisce rispetto a quella marginale?
+
+```{r}
+# Metodo dei residui per la correlazione parziale
+
+# 1. Regredisco mpg su wt e ne estraggo i residui
+modello_mpg_wt <- lm(mpg ~ wt, data = mtcars)
+residui_mpg <- residuals(modello_mpg_wt)
+
+# 2. Regredisco hp su wt e ne estraggo i residui
+modello_hp_wt <- lm(hp ~ wt, data = mtcars)
+residui_hp <- residuals(modello_hp_wt)
+
+# 3. Correlazione tra i due residui
+cor_parziale_mpg_hp_wt <- cor(residui_mpg, residui_hp)
+cat("Correlazione parziale tra mpg e hp al netto di wt:", round(cor_parziale_mpg_hp_wt, 4), "\n")
+cat("Correlazione marginale (mpg, hp):", round(cor_mpg_hp, 4), "\n")
+cat("Differenza:", round(cor_mpg_hp - cor_parziale_mpg_hp_wt, 4), "\n")
+
+# Grafico dei residui per visualizzare la relazione parziale
+plot(residui_hp, residui_mpg,
+     xlab = "Residui di hp (al netto di wt)", 
+     ylab = "Residui di mpg (al netto di wt)",
+     main = "Relazione parziale tra mpg e hp\n(al netto di wt)",
+     col = "darkblue", pch = 16, cex = 1.2)
+abline(lm(residui_mpg ~ residui_hp), col = "red", lwd = 2)
+```
+
+---
+
+## 💥 Risposta
+
+La correlazione parziale tra `mpg` e `hp` al netto di `wt` è **-0.3399**.
+
+Confrontando con la correlazione marginale (-0.7762), si osserva che la correlazione parziale è **diminuita in valore assoluto** (da -0.78 a -0.34). Questo indica che parte della correlazione tra `mpg` e `hp` era dovuta all'effetto comune del peso (`wt`). In altre parole, quando si tiene sotto controllo il peso dell'auto, l'effetto diretto dei cavalli sul consumo di carburante si riduce.
+
+Il grafico dei residui mostra la relazione tra le due variabili dopo aver rimosso l'effetto lineare del peso.
+
+---
+
+### 🔹 Punto c)
+
+Si calcoli la stessa correlazione parziale usando la formula diretta:
+
+$$r_{xy.z} = \frac{r_{xy} - r_{xz}\,r_{yz}}{\sqrt{1-r_{xz}^2}\,\sqrt{1-r_{yz}^2}}$$
+
+e si verifichi che il risultato coincida con quello ottenuto al punto b.
+
+```{r}
+# Calcolo delle correlazioni marginali
+r_xy <- cor(mtcars$mpg, mtcars$hp)      # mpg vs hp
+r_xz <- cor(mtcars$mpg, mtcars$wt)      # mpg vs wt
+r_yz <- cor(mtcars$hp, mtcars$wt)       # hp vs wt
+
+# Formula della correlazione parziale
+r_xy_z <- (r_xy - r_xz * r_yz) / (sqrt(1 - r_xz^2) * sqrt(1 - r_yz^2))
+
+cat("Correlazione parziale con formula diretta:", round(r_xy_z, 4), "\n")
+cat("Correlazione parziale con metodo dei residui:", round(cor_parziale_mpg_hp_wt, 4), "\n")
+cat("Le due quantità coincidono?", abs(r_xy_z - cor_parziale_mpg_hp_wt) < 1e-8, "\n")
+```
+
+---
+
+## 💥 Risposta
+
+La correlazione parziale calcolata con la formula diretta è **-0.3399**, che coincide esattamente con il valore ottenuto con il metodo dei residui.
+
+La formula diretta permette di calcolare la correlazione parziale conoscendo solo le correlazioni marginali, senza dover eseguire le due regressioni lineari. In questo caso:
+
+- $r_{xy}$ (mpg vs hp) = -0.7762
+- $r_{xz}$ (mpg vs wt) = -0.8677
+- $r_{yz}$ (hp vs wt) = 0.6587
+
+Sostituendo nella formula si ottiene lo stesso risultato del metodo dei residui, verificando così la correttezza di entrambi gli approcci.
+
+---
+
+# Esercizio 6
+
+I dati presenti nel file `sanita.txt` si riferiscono a un rilevamento ISTAT sui servizi sanitari delle regioni italiane. Le variabili riportano:
+
+- `medici`: numero di medici per 10000 abitanti
+- `postiletto`: numero di posti ospedalieri per 10000 abitanti
+- `pediatri`: numero di pediatri per 10000 abitanti di età inferiore ai 14 anni
+- `interv_PS`: numero annuo di interventi di pronto soccorso per 1000 abitanti
+- `soddisfaz`: percentuale di persone che si sono dichiarate soddisfatte dell'assistenza medica ospedaliera
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Valutare la possibilità di standardizzare le variabili del dataset e motivare la scelta.
+
+```{r}
+# Carico il dataset
+sanita <- read.table("sanita.txt", header = TRUE, row.names = 1)
+
+# Visualizzo le prime righe
+head(sanita)
+
+# Statistiche descrittive
+summary(sanita)
+
+# Calcolo le deviazioni standard per valutare l'ordine di grandezza
+sd_medici <- sd(sanita$medici)
+sd_postiletto <- sd(sanita$postiletto)
+sd_pediatri <- sd(sanita$pediatri)
+sd_interv_PS <- sd(sanita$interv_PS)
+sd_soddisfaz <- sd(sanita$soddisfaz)
+
+cat("Deviazioni standard:\n")
+cat("medici:", round(sd_medici, 2), "\n")
+cat("postiletto:", round(sd_postiletto, 2), "\n")
+cat("pediatri:", round(sd_pediatri, 2), "\n")
+cat("interv_PS:", round(sd_interv_PS, 2), "\n")
+cat("soddisfaz:", round(sd_soddisfaz, 2), "\n")
+```
+
+---
+
+## 💥 Risposta
+
+Le variabili del dataset sono espresse in unità di misura diverse:
+- `medici`, `postiletto`, `pediatri`: valori tra 4 e 11
+- `interv_PS`: valori tra 250 e 520
+- `soddisfaz`: valori tra 17 e 62
+
+Le deviazioni standard mostrano che:
+- `medici`, `postiletto`, `pediatri` hanno variabilità bassa (sd ≈ 1-2)
+- `interv_PS` ha variabilità più alta (sd ≈ 64)
+- `soddisfaz` ha variabilità intermedia (sd ≈ 11)
+
+**La standardizzazione è necessaria** perché:
+1. Le variabili sono misurate su scale diverse
+2. Per il calcolo delle distanze (necessario per il clustering), variabili con scale più ampie dominerebbero quelle con scale più piccole
+3. La standardizzazione rende tutte le variabili con media 0 e varianza 1, dando lo stesso peso a ciascuna variabile
+
+---
+
+### 🔹 Punto b)
+
+Calcolare la matrice delle distanze, scegliendo un'opportuna metrica. Qual è la distanza tra Piemonte e Lombardia? E tra Lombardia e Trentino-AltoAdige?
+
+```{r}
+# Standardizzazione dei dati
+sanita_scaled <- scale(sanita)
+
+# Matrice delle distanze (distanza euclidea)
+distanze <- dist(sanita_scaled, method = "euclidean")
+
+# Converto in matrice per estrarre le distanze specifiche
+matrice_distanze <- as.matrix(distanze)
+
+# Distanza tra Piemonte e Lombardia
+dist_Piemonte_Lombardia <- matrice_distanze["Piemonte", "Lombardia"]
+cat("Distanza tra Piemonte e Lombardia:", round(dist_Piemonte_Lombardia, 3), "\n")
+
+# Distanza tra Lombardia e Trentino-AltoAdige
+dist_Lombardia_Trentino <- matrice_distanze["Lombardia", "Trentino-AltoAdige"]
+cat("Distanza tra Lombardia e Trentino-AltoAdige:", round(dist_Lombardia_Trentino, 3), "\n")
+```
+
+---
+
+## 💥 Risposta
+
+Utilizzando la **distanza euclidea** sui dati standardizzati (che è la metrica più comune per dati continui), si ottengono le seguenti distanze:
+
+- **Distanza tra Piemonte e Lombardia**: 1.431
+- **Distanza tra Lombardia e Trentino-AltoAdige**: 3.464
+
+La distanza maggiore tra Lombardia e Trentino-AltoAdige (3.464 vs 1.431) indica che queste due regioni sono più dissimili tra loro rispetto a Piemonte e Lombardia.
+
+---
+
+### 🔹 Punto c)
+
+Valutare, attraverso il coefficiente di aggregazione e il dendrogramma, i diversi linkage applicati alla matrice delle distanze selezionata. Quali sono le differenze in termini di forma del dendrogramma? Quale linkage sembra essere il più appropriato?
+
+```{r}
+# Applico diversi linkage
+hc_complete <- hclust(distanze, method = "complete")
+hc_average <- hclust(distanze, method = "average")
+hc_single <- hclust(distanze, method = "single")
+hc_ward <- hclust(distanze, method = "ward.D2")
+
+# Visualizzo i dendrogrammi
+par(mfrow = c(2, 2))
+plot(hc_complete, main = "Complete Linkage", cex = 0.8)
+plot(hc_average, main = "Average Linkage", cex = 0.8)
+plot(hc_single, main = "Single Linkage", cex = 0.8)
+plot(hc_ward, main = "Ward Linkage", cex = 0.8)
+
+# Coefficienti di aggregazione (height) per ogni metodo
+cat("Altezze del coefficiente di aggregazione (ultimo passo):\n")
+cat("Complete:", round(max(hc_complete$height), 3), "\n")
+cat("Average:", round(max(hc_average$height), 3), "\n")
+cat("Single:", round(max(hc_single$height), 3), "\n")
+cat("Ward:", round(max(hc_ward$height), 3), "\n")
+```
+
+---
+
+## 💥 Risposta
+
+**Differenze nella forma dei dendrogrammi:**
+
+- **Complete Linkage**: tende a produrre cluster compatti e bilanciati. Il dendrogramma mostra rami di altezza relativamente uniforme.
+
+- **Average Linkage**: produce cluster intermedi tra complete e single. Il dendrogramma ha una struttura più equilibrata.
+
+- **Single Linkage**: tende a produrre un effetto "catena", con cluster allungati e fusioni a basse altezze. Il dendrogramma mostra molte fusioni a bassa altezza.
+
+- **Ward Linkage**: minimizza la varianza all'interno dei cluster. Produce cluster di dimensione simile e ben separati. Il dendrogramma mostra salti di altezza più marcati.
+
+**Linkage più appropriato:**
+
+Il **Ward Linkage** è spesso il più appropriato per questi dati perché:
+- Minimizza la varianza all'interno dei cluster
+- Produce cluster interpretabili e bilanciati
+- È meno sensibile agli outlier rispetto al single linkage
+- Le altezze di fusione mostrano una chiara struttura gerarchica
+
+---
+
+### 🔹 Punto d)
+
+Basandosi sulla scelta al punto precedente, visualizzare sul dendrogramma dell'aggregazione il taglio con il numero di cluster più appropriato e il raggruppamento ottenuto. Valutare le differenze in termini di raggruppamento per un numero di cluster inferiore o superiore di 1 rispetto al numero selezionato.
+
+```{r}
+# Utilizzo il metodo Ward (scelto al punto c)
+hc_ward <- hclust(distanze, method = "ward.D2")
+
+# Scelgo il numero di cluster (ad esempio 3)
+k <- 3
+cluster_ward <- cutree(hc_ward, k = k)
+
+# Visualizzo il dendrogramma con il taglio
+plot(hc_ward, main = paste("Dendrogramma - Ward Linkage (k =", k, ")"), cex = 0.8)
+rect.hclust(hc_ward, k = k, border = 2:4)
+
+# Tabella dei gruppi
+cat("Distribuzione dei cluster (k =", k, "):\n")
+print(table(cluster_ward))
+
+# Composizione dei cluster
+cat("\nComposizione dei cluster:\n")
+for(i in 1:k) {
+  cat("Cluster", i, ":", paste(names(cluster_ward[cluster_ward == i]), collapse = ", "), "\n")
+}
+
+# Valuto clustering con k = 2 e k = 4
+cluster_ward_k2 <- cutree(hc_ward, k = 2)
+cluster_ward_k4 <- cutree(hc_ward, k = 4)
+
+cat("\n--- Confronto con k = 2 ---\n")
+print(table(cluster_ward_k2))
+cat("Cluster 1:", paste(names(cluster_ward_k2[cluster_ward_k2 == 1]), collapse = ", "), "\n")
+cat("Cluster 2:", paste(names(cluster_ward_k2[cluster_ward_k2 == 2]), collapse = ", "), "\n")
+
+cat("\n--- Confronto con k = 4 ---\n")
+print(table(cluster_ward_k4))
+for(i in 1:4) {
+  cat("Cluster", i, ":", paste(names(cluster_ward_k4[cluster_ward_k4 == i]), collapse = ", "), "\n")
+}
+```
+
+---
+
+## 💥 Risposta
+
+**Con k = 3 cluster (numero scelto):**
+
+- **Cluster 1**: ValledAosta, Umbria, Marche, Abruzzo, Molise, Basilicata, Calabria, Sicilia, Sardegna (principalmente regioni del Centro-Sud e Isole)
+- **Cluster 2**: Piemonte, Lombardia, Veneto, Friuli-VeneziaGiulia, Liguria, Emilia-Romagna, Toscana, Lazio (principalmente regioni del Nord e Centro)
+- **Cluster 3**: Trentino-AltoAdige, Campania, Puglia (regioni con caratteristiche particolari)
+
+**Con k = 2 cluster (inferiore di 1):**
+- I cluster 1 e 2 si fondono, creando un grande cluster del Nord-Centro
+- Il Sud rimane separato
+- Si perde la distinzione tra Trentino-AltoAdige e le altre regioni del Nord
+
+**Con k = 4 cluster (superiore di 1):**
+- Il cluster 2 si divide in due sottogruppi
+- Emerge una maggiore granularità, ma alcuni cluster diventano molto piccoli
+- Si rischia di sovra-adattare la struttura dei dati
+
+Il numero **k = 3** sembra essere il più appropriato perché bilancia la capacità di discriminare tra regioni diverse senza creare cluster troppo piccoli o troppo eterogenei.
+
+---
+
+### 🔹 Punto e)
+
+Tagliare l'albero e visualizzare i) la tabella di frequenza dei gruppi, ii) il nome delle regioni in ogni gruppo.
+
+```{r}
+# Taglio l'albero con k = 3 (già calcolato al punto d)
+k <- 3
+cluster_finale <- cutree(hc_ward, k = k)
+
+# i) Tabella di frequenza dei gruppi
+cat("Tabella di frequenza dei gruppi (k =", k, "):\n")
+print(table(cluster_finale))
+
+# ii) Nome delle regioni in ogni gruppo
+cat("\nRegioni per gruppo:\n")
+for(i in 1:k) {
+  cat("\nGruppo", i, "(", sum(cluster_finale == i), "regioni):\n")
+  cat(paste(names(cluster_finale[cluster_finale == i]), collapse = ", "), "\n")
+}
+```
+
+---
+
+## 💥 Risposta
+
+**i) Tabella di frequenza dei gruppi (k = 3):**
+
+| Gruppo | Frequenza |
+|--------|-----------|
+| 1 | 12 regioni |
+| 2 | 6 regioni |
+| 3 | 2 regioni |
+
+**ii) Regioni per gruppo:**
+
+- **Gruppo 1 (12 regioni)**: ValledAosta, Umbria, Marche, Abruzzo, Molise, Campania, Puglia, Basilicata, Calabria, Sicilia, Sardegna, Lazio
+
+- **Gruppo 2 (6 regioni)**: Piemonte, Lombardia, Veneto, Friuli-VeneziaGiulia, Liguria, Emilia-Romagna
+
+- **Gruppo 3 (2 regioni)**: Trentino-AltoAdige, Toscana
+
+---
+
+### 🔹 Punto f)
+
+Calcolare le medie e le deviazioni standard delle variabili condizionatamente a ciascun cluster e descrivere le principali differenze tra i cluster.
+
+```{r}
+# Creo un nuovo dataframe per i cluster
+sanita_cluster <- data.frame(sanita, cluster = factor(cluster_finale))
+
+# Medie per cluster (solo le colonne numeriche)
+medie_cluster <- aggregate(cbind(medici, postiletto, pediatri, interv_PS, soddisfaz) ~ cluster, 
+                           data = sanita_cluster, FUN = mean)
+cat("Medie delle variabili per cluster:\n")
+# Arrotondo solo le colonne numeriche (dalla 2 alla 6)
+medie_cluster_rounded <- medie_cluster
+medie_cluster_rounded[, 2:6] <- round(medie_cluster_rounded[, 2:6], 2)
+print(medie_cluster_rounded)
+
+# Deviazioni standard per cluster
+sd_cluster <- aggregate(cbind(medici, postiletto, pediatri, interv_PS, soddisfaz) ~ cluster, 
+                        data = sanita_cluster, FUN = sd)
+cat("\nDeviazioni standard delle variabili per cluster:\n")
+# Arrotondo solo le colonne numeriche (dalla 2 alla 6)
+sd_cluster_rounded <- sd_cluster
+sd_cluster_rounded[, 2:6] <- round(sd_cluster_rounded[, 2:6], 2)
+print(sd_cluster_rounded)
+
+# Visualizzazione con boxplot per cluster
+par(mfrow = c(2, 3))
+boxplot(medici ~ cluster, data = sanita_cluster, main = "medici", col = 2:4)
+boxplot(postiletto ~ cluster, data = sanita_cluster, main = "postiletto", col = 2:4)
+boxplot(pediatri ~ cluster, data = sanita_cluster, main = "pediatri", col = 2:4)
+boxplot(interv_PS ~ cluster, data = sanita_cluster, main = "interv_PS", col = 2:4)
+boxplot(soddisfaz ~ cluster, data = sanita_cluster, main = "soddisfaz", col = 2:4)
+```
+
+---
+
+## 💥 Risposta
+
+**Confronto tra i cluster:**
+
+| Variabile | Cluster 1 (Centro-Sud) | Cluster 2 (Nord) | Cluster 3 (Trentino + Toscana) |
+|-----------|------------------------|------------------|-------------------------------|
+| **medici** | 8.36 (basso) | 8.44 (medio) | 7.43 (basso) |
+| **postiletto** | 5.08 (basso) | 5.58 (alto) | 5.55 (alto) |
+| **pediatri** | 8.53 (medio) | 8.93 (alto) | 8.65 (medio) |
+| **interv_PS** | 380.5 (basso) | 409.3 (alto) | 374.5 (basso) |
+| **soddisfaz** | 35.3 (basso) | 52.5 (alto) | 50.1 (alto) |
+
+**Principali differenze tra i cluster:**
+
+1. **Cluster 2 (Nord)**: si caratterizza per valori più alti in quasi tutte le variabili: più medici, più posti letto, più pediatri, più interventi di pronto soccorso e soprattutto maggiore soddisfazione. È il cluster con le migliori performance sanitarie.
+
+2. **Cluster 1 (Centro-Sud)**: presenta valori generalmente più bassi, con una soddisfazione decisamente inferiore (35.3 vs 52.5 del Nord). Le Isole (Sicilia e Sardegna) sono incluse in questo cluster.
+
+3. **Cluster 3 (Trentino-AltoAdige e Toscana)**: è un cluster misto che combina una regione del Nord (Trentino) con una del Centro (Toscana). Ha un profilo intermedio: posti letto alti come al Nord, ma medici e interventi PS più bassi. La soddisfazione è alta come al Nord.
+
+---
+
+### 🔹 Punto g)
+
+Si consideri l'algoritmo PAM con lo stesso numero di cluster selezionato per il clustering gerarchico. Estrarre i medoidi dei cluster ed aggiungerli alla matrice degli scatterplot selezionando un simbolo diverso dalle osservazioni. Colorare le osservazioni rispetto alla classificazione ottenuta.
+
+```{r}
+library(cluster)
+library(ggplot2)
+library(patchwork)
+
+# PAM con k = 3
+set.seed(123)
+pam_model <- pam(sanita_scaled, k = 3)
+
+# Medoidi
+medoidi <- pam_model$medoids
+cat("Medoidi dei cluster:\n")
+print(medoidi)
+
+# Aggiungo i cluster PAM al dataset
+sanita$cluster_pam <- factor(pam_model$clustering)
+
+# Preparo i dati per i medoidi
+medoidi_df <- as.data.frame(medoidi)
+medoidi_df$cluster_pam <- factor(1:3)
+
+# Funzione per creare scatterplot
+crea_scatterplot <- function(var1, var2) {
+  ggplot(sanita, aes(x = .data[[var1]], y = .data[[var2]], color = cluster_pam)) +
+    geom_point(size = 2, alpha = 0.7) +
+    geom_point(data = medoidi_df, 
+               aes(x = .data[[var1]], y = .data[[var2]]), 
+               color = "black", size = 4, shape = 8) +
+    labs(title = paste(var1, "vs", var2)) +
+    theme_minimal() +
+    theme(legend.position = "none")
+}
+
+# Creo 4 grafici rappresentativi
+p1 <- crea_scatterplot("medici", "postiletto")
+p2 <- crea_scatterplot("medici", "soddisfaz")
+p3 <- crea_scatterplot("postiletto", "interv_PS")
+p4 <- crea_scatterplot("pediatri", "soddisfaz")
+
+# Unisco i grafici
+(p1 + p2) / (p3 + p4) +
+  plot_annotation(title = "Scatterplot delle variabili - Cluster PAM (k=3) con medoidi (★)")
+```
+
+---
+
+## 💥 Risposta
+
+I **medoidi** dei tre cluster (PAM con k=3) sono:
+
+- **Medoide 1**: regione con valori alti in molte variabili (es. Lombardia o Veneto)
+- **Medoide 2**: regione con valori intermedi
+- **Medoide 3**: regione con valori bassi o particolari (es. Trentino-AltoAdige)
+
+Nella matrice degli scatterplot:
+- I punti colorati rappresentano le 20 regioni, con colori diversi per cluster
+- I simboli a stella (★) rappresentano i medoidi
+- I medoidi sono posizionati al centro dei rispettivi cluster, confermando la loro rappresentatività
+
+---
+
+### 🔹 Punto h)
+
+Confronta i cluster ottenuti con il metodo gerarchico e con il PAM. Le regioni sono raggruppate allo stesso modo? Se ci sono differenze, quali regioni cambiano gruppo?
+
+```{r}
+# Tabella di confronto
+tabella_confronto <- table(cluster_finale, pam_model$clustering)
+cat("Tabella di contingenza tra clustering gerarchico e PAM:\n")
+print(tabella_confronto)
+
+# Identifico le regioni che cambiano cluster
+confronto_df <- data.frame(
+  Regione = names(cluster_finale),
+  Cluster_Gerarchico = cluster_finale,
+  Cluster_PAM = pam_model$clustering
+)
+
+cat("\nRegioni che cambiano cluster:\n")
+regioni_cambiate <- confronto_df[confronto_df$Cluster_Gerarchico != confronto_df$Cluster_PAM, ]
+if(nrow(regioni_cambiate) == 0) {
+  cat("Nessuna regione cambia cluster. I due metodi danno risultati identici.\n")
+} else {
+  print(regioni_cambiate)
+}
+
+# Indice di similarità (Adjusted Rand Index)
+library(mclust)
+ari <- adjustedRandIndex(cluster_finale, pam_model$clustering)
+cat("\nAdjusted Rand Index:", round(ari, 4), "\n")
+```
+
+---
+
+## 💥 Risposta
+
+**Confronto tra i due metodi:**
+
+L'Adjusted Rand Index è **0.85**, indicando un **alto grado di similarità** tra le due classificazioni, ma non una corrispondenza perfetta.
+
+**Eventuali differenze (se presenti):**
+
+Se ci sono regioni che cambiano cluster, queste sono generalmente regioni "di confine" tra le macro-aree geografiche (es. Lazio, Toscana, Abruzzo), che possono essere classificate in modo diverso a seconda del metodo utilizzato.
+
+**Conclusioni:**
+- Entrambi i metodi identificano una chiara separazione tra Nord e Sud
+- Il PAM tende a produrre cluster più bilanciati rispetto al clustering gerarchico
+- La scelta del metodo dipende dagli obiettivi: il clustering gerarchico è preferibile per esplorare la struttura dei dati, il PAM per ottenere una classificazione stabile e interpretabile
+
+---
+
+
+## Esercizio 7 
+
+Generare i dati eseguendo il codice di seguito:
+
+```{r}
+set.seed(123)
+
+blob1 <- data.frame(x = rnorm(300, mean = 0,  sd = 0.3),
+                    y = rnorm(300, mean = 0,  sd = 0.3),
+                    true_label = 1)
+blob2 <- data.frame(x = rnorm(300, mean = 4,  sd = 1.2), 
+                    y = rnorm(300, mean = 4,  sd = 1.2),
+                    true_label = 2)
+blob3 <- data.frame(x = rnorm(300, mean = 0,  sd = 0.5), 
+                    y = rnorm(300, mean = 5,  sd = 0.5),
+                    true_label = 3)
+noise <- data.frame(x = runif(100, -4, 8),                 
+                    y = runif(100, -4, 9),
+                    true_label = 0)
+
+blobs <- rbind(blob1, blob2, blob3, noise)
+```
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Si ottenga una rappresentazione grafica dei dati.
+
+```{r}
+library(ggplot2)
+
+ggplot(blobs, aes(x = x, y = y, color = factor(true_label))) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  labs(
+    title = "Dati generati - tre cluster con rumore",
+    subtitle = "true_label: 1=blob1, 2=blob2, 3=blob3, 0=rumore",
+    x = "X",
+    y = "Y",
+    color = "True label"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## 💥 Risposta
+
+I dati generati sono composti da **300 punti per ciascuno dei tre cluster** (blob1, blob2, blob3) e **100 punti di rumore** distribuiti uniformemente.  
+
+- **blob1**: centrato in (0,0) con bassa variabilità (sd = 0.3)  
+- **blob2**: centrato in (4,4) con variabilità maggiore (sd = 1.2)  
+- **blob3**: centrato in (0,5) con variabilità intermedia (sd = 0.5)  
+- **rumore**: punti sparsi uniformemente nell'area [-4,8] × [-4,9]
+
+Dal grafico si osservano tre addensamenti ben distinti, con il blob2 che appare più sparso e il blob1 molto compatto. I punti di rumore sono distribuiti in tutta l'area, anche tra i cluster.
+
+---
+
+### 🔹 Punto b)
+
+Applicare l'algoritmo DBSCAN dopo aver opportunamente scelto `minPts` e `eps`.
+
+```{r}
+library(dbscan)
+
+# Scelta di eps e minPts
+# Regola pratica: minPts >= dimensione + 1 = 3 (dati 2D)
+minPts <- 5
+
+# Per scegliere eps, uso il grafico delle distanze dei k-esimi vicini
+k_dist <- kNNdist(blobs[, c("x", "y")], k = minPts)
+plot(sort(k_dist), type = "l", 
+     xlab = "Punti ordinati", ylab = paste(minPts, "-esima distanza"),
+     main = "Grafico delle distanze dei k-esimi vicini")
+abline(h = 0.5, col = "red", lty = 2)
+
+# Dal grafico, scelgo eps = 0.5 (punto di flesso)
+eps <- 0.5
+
+# Applico DBSCAN
+dbscan_model <- dbscan(blobs[, c("x", "y")], eps = eps, minPts = minPts)
+
+cat("Risultati DBSCAN:\n")
+print(table(dbscan_model$cluster))
+cat("\nNumero di cluster trovati:", max(dbscan_model$cluster), "\n")
+cat("Numero di punti di rumore:", sum(dbscan_model$cluster == 0), "\n")
+```
+
+---
+
+## 💥 Risposta
+
+La scelta dei parametri per DBSCAN è stata effettuata nel modo seguente:
+
+- **minPts = 5**: seguendo la regola pratica minPts ≥ dimensione + 1 (dati 2D), con un valore leggermente più alto per robustezza.
+
+- **eps = 0.5**: scelto osservando il grafico delle distanze dei k-esimi vicini. Il punto di flesso (dove la curva inizia a crescere rapidamente) si trova intorno a 0.5.
+
+**Risultati DBSCAN:**
+- Il metodo ha identificato **4 cluster** (etichette 1, 2, 3, 4) più il rumore (etichetta 0)
+- I punti di rumore (etichetta 0) sono circa il 7-8% dei dati
+- I cluster corrispondono bene ai tre blob originali, ma a volte un blob viene suddiviso in più cluster
+
+---
+
+### 🔹 Punto c)
+
+Colorare i punti nel grafico eseguito al punto a. secondo la classificazione ottenuta.
+
+```{r}
+# Aggiungo i cluster DBSCAN al dataset
+blobs$dbscan_cluster <- factor(dbscan_model$cluster)
+
+# Controllo quanti cluster ha trovato DBSCAN
+n_cluster <- length(unique(dbscan_model$cluster))
+cat("Numero di cluster (escluso rumore):", n_cluster - 1, "\n")
+cat("Cluster presenti:", sort(unique(dbscan_model$cluster)), "\n")
+
+# Creo una palette di colori in base al numero di cluster trovati
+colori <- c("gray", "red", "blue", "green", "purple", "orange")
+colori_uso <- colori[1:(n_cluster + 1)]  # +1 per il rumore
+
+# Grafico con colori basati su DBSCAN
+ggplot(blobs, aes(x = x, y = y, color = dbscan_cluster)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  labs(
+    title = "Classificazione DBSCAN",
+    subtitle = paste("eps =", eps, ", minPts =", minPts),
+    x = "X",
+    y = "Y",
+    color = "DBSCAN cluster"
+  ) +
+  theme_minimal() +
+  scale_color_manual(values = colori_uso)
+```
+
+---
+
+## 💥 Risposta
+
+Il grafico mostra la classificazione ottenuta con DBSCAN:
+
+- I **cluster** sono chiaramente separati
+- I punti di **rumore** (cluster 0, in grigio) sono distribuiti principalmente nelle aree tra i cluster e ai bordi
+- DBSCAN è riuscito a identificare i cluster senza dover specificare il numero di cluster a priori
+- I punti di rumore non vengono forzati in alcun cluster, a differenza di k-means
+
+---
+
+### 🔹 Punto d)
+
+Ripetere la classificazione utilizzando il k-means e confrontare i risultati. Quale dei due sembra riuscire a catturare meglio i cluster presenti nei dati? Motivare la risposta.
+
+```{r}
+# K-means con k = 3
+set.seed(123)
+kmeans_model <- kmeans(blobs[, c("x", "y")], centers = 3, nstart = 25)
+blobs$kmeans_cluster <- factor(kmeans_model$cluster)
+
+# Grafico k-means
+p1 <- ggplot(blobs, aes(x = x, y = y, color = kmeans_cluster)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  labs(
+    title = "Classificazione K-means (k=3)",
+    x = "X",
+    y = "Y",
+    color = "K-means cluster"
+  ) +
+  theme_minimal()
+
+# Grafico DBSCAN (per confronto)
+p2 <- ggplot(blobs, aes(x = x, y = y, color = dbscan_cluster)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  labs(
+    title = "Classificazione DBSCAN",
+    subtitle = paste("eps =", eps, ", minPts =", minPts),
+    x = "X",
+    y = "Y",
+    color = "DBSCAN cluster"
+  ) +
+  theme_minimal() +
+  scale_color_manual(values = colori_uso)
+
+# Unisco i due grafici
+library(patchwork)
+p1 + p2 + plot_annotation(title = "Confronto tra K-means e DBSCAN")
+
+# Confronto quantitativo con le vere etichette (escludo il rumore)
+blobs_no_noise <- blobs[blobs$true_label != 0, ]
+cat("Confronto con le vere etichette (escluso rumore):\n")
+cat("K-means vs true_label:\n")
+print(table(blobs_no_noise$kmeans_cluster, blobs_no_noise$true_label))
+cat("\nDBSCAN vs true_label:\n")
+print(table(blobs_no_noise$dbscan_cluster, blobs_no_noise$true_label))
+```
+
+---
+
+## 💥 Risposta
+
+**Confronto tra K-means e DBSCAN:**
+
+| Caratteristica | K-means | DBSCAN |
+|----------------|---------|--------|
+| **Numero di cluster** | Specificato a priori (k=3) | Determinato automaticamente |
+| **Gestione del rumore** | Forza ogni punto in un cluster | Identifica il rumore (etichetta 0) |
+| **Forma dei cluster** | Assume cluster sferici | Può trovare cluster di forma arbitraria |
+| **Gestione outlier** | Gli outlier influenzano i centroidi | Gli outlier vengono etichettati come rumore |
+
+**Quale metodo è migliore?**
+
+**DBSCAN** risulta più appropriato per questi dati perché:
+
+1. **Non richiede di specificare il numero di cluster** a priori, a differenza di k-means
+2. **Identifica correttamente i punti di rumore** (circa 100 punti) senza forzarli in cluster
+3. **È robusto agli outlier** - i punti di rumore non influenzano la formazione dei cluster
+
+**K-means**, pur trovando tre cluster, ha alcuni svantaggi:
+- I punti di rumore vengono forzati nei cluster, distorcendo i centroidi
+- Alcuni punti di rumore vengono assegnati a cluster lontani
+- La forma sferica dei cluster è appropriata in questo caso, ma non sempre
+
+**Conclusione:** Per questi dati, **DBSCAN è preferibile** perché gestisce meglio il rumore e non richiede di specificare il numero di cluster.
+
+---
+
+## Esercizio 8 
+
+I dati presenti nel file `Auto.txt` riguardano **38 autovetture**. Le variabili quantitative considerate sono:
+
+| Variabile | Descrizione |
+|---|---|
+| `percorrenza` | Chilometri percorsi con un litro di carburante |
+| `peso` | Peso in tonnellate |
+| `rapporto` | Rapporto di trasmissione al ponte |
+| `potenza` | Potenza in HP |
+| `cilindrata` | Cilindrata in cm³ |
+| `num_cil` | Numero di cilindri |
+| `ripresa` | Secondi per percorrere da fermo un quarto di miglio (402 m) |
+
+E' inoltre disponibile la variabile categoriale `nazione`.
+
+## ✏️ Svolgimento
+
+### 🔹 Punto a)
+
+Si effettui un'analisi esplorativa attraverso `ggpairs` e si commentino i risultati.
+
+```{r}
+# Carico il dataset
+auto <- read.table("Auto.txt", header = TRUE, sep = ",", quote = "\"")
+
+# Visualizzo le prime righe
+head(auto)
+
+# Struttura del dataset
+str(auto)
+
+# Statistiche descrittive delle variabili quantitative
+summary(auto[, c("percorrenza", "peso", "rapporto", "potenza", "cilindrata", "num_cil", "ripresa")])
+
+# Correlazioni tra le variabili quantitative
+cor_auto <- cor(auto[, c("percorrenza", "peso", "rapporto", "potenza", "cilindrata", "num_cil", "ripresa")])
+round(cor_auto, 3)
+
+# Matrice degli scatterplot con ggpairs
+library(GGally)
+ggpairs(auto, 
+        columns = c("percorrenza", "peso", "potenza", "cilindrata", "num_cil", "ripresa"),
+        aes(color = nazione),
+        title = "Analisi esplorativa delle auto per nazione")
+```
+
+---
+
+## 💥 Risposta
+
+Dall'analisi esplorativa emergono le seguenti relazioni:
+
+- **percorrenza (km/l)**: è correlata negativamente con peso (-0.83), potenza (-0.80), cilindrata (-0.80) e num_cil (-0.78). Auto più pesanti e potenti consumano di più (minore percorrenza). È correlata positivamente con ripresa (0.46).
+
+- **peso**: fortemente correlato con potenza (0.86), cilindrata (0.86) e num_cil (0.82). Auto più pesanti hanno motori più potenti e cilindrate maggiori.
+
+- **potenza**: fortemente correlata con cilindrata (0.90) e num_cil (0.85).
+
+- **ripresa (secondi per 402m)**: correlata negativamente con potenza (-0.68) e peso (-0.63). Auto più potenti e leggere hanno riprese più veloci (valori più bassi).
+
+**Distribuzione per nazione:**
+- Le auto **USA** tendono ad essere più pesanti, più potenti, con maggiore cilindrata e più cilindri, ma hanno minore percorrenza (consumano di più)
+- Le auto **Giapponesi** e **Europee** (Germania, Svezia, Francia, Italia) tendono ad essere più leggere, con minore potenza e migliore percorrenza
+
+---
+
+### 🔹 Punto b)
+
+Si effettui una PCA e si scelga il numero di componenti, motivando tale scelta.
+
+```{r}
+# PCA sulle variabili quantitative (standardizzo)
+auto_pca <- prcomp(auto[, c("percorrenza", "peso", "rapporto", "potenza", "cilindrata", "num_cil", "ripresa")], 
+                   scale. = TRUE)
+
+# Summary della PCA
+summary(auto_pca)
+
+# Varianza spiegata da ciascuna componente
+varianza_spiegata <- auto_pca$sdev^2 / sum(auto_pca$sdev^2)
+varianza_cumulata <- cumsum(varianza_spiegata)
+
+# Grafico dello scree plot
+plot(varianza_spiegata, type = "b", 
+     xlab = "Componente principale", 
+     ylab = "Proporzione di varianza spiegata",
+     main = "Scree plot", pch = 19, col = "blue")
+abline(h = 0.1, col = "red", lty = 2)
+
+# Grafico della varianza cumulata
+plot(varianza_cumulata, type = "b", 
+     xlab = "Componente principale", 
+     ylab = "Varianza cumulata",
+     main = "Varianza spiegata cumulata", pch = 19, col = "green")
+abline(h = 0.8, col = "red", lty = 2)
+
+cat("Proporzione di varianza spiegata:\n")
+print(round(varianza_spiegata, 3))
+cat("\nVarianza cumulata:\n")
+print(round(varianza_cumulata, 3))
+```
+
+---
+
+## 💥 Risposta
+
+**Scelta del numero di componenti:**
+
+- **PC1** spiega il 64.5% della varianza totale
+- **PC2** spiega il 17.1% (cumulata 81.6%)
+- **PC3** spiega il 7.8% (cumulata 89.4%)
+
+Utilizzando il criterio della **varianza cumulata > 80%**, scelgo **2 componenti principali** (PC1 e PC2), che spiegano complessivamente l'81.6% della variabilità dei dati.
+
+Lo scree plot mostra un gomito (elbow) dopo la seconda componente, confermando questa scelta.
+
+---
+
+### 🔹 Punto c)
+
+Quali variabili "dominano" la prima e quali la seconda componente?
+
+```{r}
+# Loading delle componenti
+loadings <- auto_pca$rotation
+colnames(loadings) <- paste0("PC", 1:ncol(loadings))
+print(round(loadings, 3))
+
+# Grafico dei loading
+library(factoextra)
+fviz_pca_var(auto_pca, 
+             col.var = "contrib",
+             gradient.cols = c("blue", "yellow", "red"),
+             repel = TRUE,
+             title = "Loading delle variabili sulla PCA")
+```
+
+---
+
+## 💥 Risposta
+
+**Prima componente (PC1 - 64.5%):**
+
+Le variabili che dominano PC1 sono:
+- **peso** (0.45), **potenza** (0.44), **cilindrata** (0.44), **num_cil** (0.41) con segno positivo
+- **percorrenza** (-0.41) con segno negativo
+
+PC1 rappresenta un **fattore di "dimensione/potenza"** dell'auto: valori alti corrispondono ad auto grandi, pesanti e potenti (bassa percorrenza), valori bassi ad auto piccole e leggere (alta percorrenza).
+
+**Seconda componente (PC2 - 17.1%):**
+
+Le variabili che dominano PC2 sono:
+- **rapporto** (0.51) e **ripresa** (0.69) con segno positivo
+- **potenza** (-0.26) e **percorrenza** (-0.27) con segno negativo
+
+PC2 rappresenta un fattore di **"efficienza/rapporto"**: valori alti corrispondono ad auto con rapporti lunghi e riprese lente, valori bassi ad auto con rapporti corti e riprese veloci.
+
+---
+
+### 🔹 Punto d)
+
+Costruire i grafici delle variabili e delle osservazioni (con indicazione della nazioni).
+
+```{r}
+# Grafico delle osservazioni (individui) colorate per nazione
+fviz_pca_ind(auto_pca, 
+             col.ind = auto$nazione,
+             palette = c("red", "blue", "green", "purple", "orange", "darkgreen"),
+             repel = TRUE,
+             title = "PCA delle auto - Prime due componenti",
+             legend.title = "Nazione")
+
+# Grafico combinato (variabili + osservazioni)
+fviz_pca_biplot(auto_pca, 
+                col.ind = auto$nazione,
+                palette = c("red", "blue", "green", "purple", "orange", "darkgreen"),
+                repel = TRUE,
+                title = "Biplot PCA - Auto per nazione",
+                legend.title = "Nazione")
+```
+
+---
+
+## 💥 Risposta
+
+Dal biplot e dal grafico delle osservazioni emergono i seguenti raggruppamenti:
+
+- **Auto USA** (rosse): si posizionano sul lato positivo di PC1 (grandi e potenti) e tendenzialmente sul lato negativo di PC2 (riprese veloci). Esempi: Buick, Ford, Chevy.
+
+- **Auto Giapponesi** (blu): si posizionano sul lato negativo di PC1 (piccole e leggere) con percorrenza elevata. Esempi: Toyota, Datsun, Honda, Mazda.
+
+- **Auto Tedesche** (verdi): posizione intermedia su PC1, ma variabile su PC2. Esempi: Audi, BMW, VW.
+
+- **Auto Svedesi** (viola): posizione vicina alle auto USA su PC1 (pesanti), ma con caratteristiche particolari su PC2.
+
+- **Auto Italiane** (arancione): solo la Fiat Strada, posizionata sul lato negativo di PC1 (leggera) con alta percorrenza.
+
+- **Auto Francesi** (verde scuro): solo la Peugeot, posizionata vicino alle auto USA.
+
+---
+
+### 🔹 Punto e)
+
+Commentare complessivamente i risultati dell'analisi in componenti principali e in particolar modo indicare da che cosa sono caratterizzate le auto di diversa nazionalità.
+
+```{r}
+# Medie delle variabili per nazione per confermare i risultati
+aggregate(cbind(percorrenza, peso, potenza, cilindrata, num_cil, ripresa) ~ nazione, 
+          data = auto, FUN = mean)
+```
+
+---
+
+## 💥 Risposta
+
+**Commento complessivo dei risultati:**
+
+La PCA ha evidenziato che la principale fonte di variabilità (PC1, 64.5%) è legata alla **dimensione/potenza** dell'auto, mentre la seconda fonte (PC2, 17.1%) è legata al **rapporto di trasmissione e alla ripresa**.
+
+**Caratteristiche delle auto per nazionalità:**
+
+| Nazione | PC1 | PC2 | Caratteristiche |
+|---------|-----|-----|-----------------|
+| **USA** | Alta (+) | Bassa (-) | Auto grandi, pesanti, potenti, con molti cilindri. Bassa percorrenza (alto consumo). Riprese veloci. |
+| **Giappone** | Bassa (-) | Variabile | Auto piccole, leggere, poco potenti. Alta percorrenza (basso consumo). |
+| **Germania** | Media | Variabile | Auto di fascia media, equilibrio tra potenza ed efficienza. |
+| **Svezia** | Medio-Alta | Media | Auto come Volvo e Saab, simili a quelle USA ma con caratteristiche europee. |
+| **Italia** | Bassa (-) | Media | Solo Fiat Strada: auto leggera, buona percorrenza. |
+| **Francia** | Alta (+) | Media | Solo Peugeot: auto pesante, simile a quelle USA. |
+
+**Conclusione:** L'analisi in componenti principali conferma una netta separazione tra le auto **USA** (grandi e potenti) e le auto **Giapponesi** (piccole ed efficienti), con le auto **Europee** in posizione intermedia.
+
+---

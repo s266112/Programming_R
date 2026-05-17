@@ -1,0 +1,387 @@
+---
+title: "Data Analytics - Homework 3"
+author: Il vostro nome 
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: false
+    toc_float: false
+    toc_depth: 3
+    theme: flatly
+    highlight: kate
+    number_sections: false
+    df_print: paged
+    code_folding: show
+  pdf_document:
+    toc: true
+    number_sections: true
+    highlight: kate
+---
+
+
+
+# Soluzioni
+
+
+## Esercizio 1
+Costruisci una funzione `decompose` che ha come input un insieme di dati divisi in gruppi (bastano una variabile di tipo numeric ed una di tipo factor) e calcola:
+
+ **Punto a.** La devianza entro i gruppi $DEV_{within}$, la devianza tra i gruppi $DEV_{between}$ e la devianza totale $DEV_{tot}$;
+ 
+ **Punto b.** Il coefficiente $\eta^2$.
+ 
+Applica poi la funzione così costruita sul dataset `iris`, disponibile in `R`, visto a lezione e confronta i risultati con quellio ottenuti mediante la funzione `aov`.
+
+
+```{r}
+
+```
+
+Risposta:
+
+## Esercizio 2
+Costruisci una funzione `decompose.lm` che ha come input un modello di regressione lineare e calcola:
+
+ **Punto a.** La devianza residua $SQE$ e la devianza spiegata $SQR$;
+ 
+ **Punto b.** Verificare che la somma delle devianze ottenute al punto precedente coincida con la devianza totale. 
+ 
+Applica la funzione al dataset `case.csv`, disponibile su moodle, con variabile risposta Price e variabile esplicativa SquareFeet.
+
+```{r}
+
+```
+
+Risposta:
+
+
+## Esercizio 3
+
+Il dataset `insurance.csv`, disponibile su moodle, descrive le spese mediche sostenute da una compagnia assicurativa statunitense per 1338 soggetti. Le variabili presenti nel dataset sono:
+
+ - `age`: età dell’assicurato
+ - `sex`: genere dell’assicurato
+ - `bmi`: indice di massa corporea
+ - `children`: numero di figli a carico
+ - `smoker`: fumatore
+ - `region`: l’area di residenza dell’assicurato negli Stati Uniti
+ - `charges`: le spese mediche individuali fatturate dall’assicurazione
+
+
+**Punto  a.** Nell’ottica di voler stimare un modello di regressione lineare che consideri la variabile spese mediche come variabile risposta, visualizzare e commentare le relazioni a coppie tra la variabile `charges` e le altre presenti nel data set con opportuni strumenti grafici e numerici.
+ 
+```{r}
+
+```
+
+Risposta:
+
+**Punto  b.** Costruire un primo modello di regressione lineare per le spese mediche selezionando come esplicativa la variabile `age`. Interpretare i coefficienti del modello, valutare la bontà di adattamento ed analizzare i residui.
+ 
+```{r}
+
+```
+
+Risposta:
+
+**Punto c.** Disegnare lo scatterplot per le variabili `age` e `charges` ed aggiungere al grafico la retta di regressione stimata al punto precedente. Evidenziare sul grafico, con bande colorate, uno scostamento di un anno sull’età ed il rispettivo incremento atteso sulle spese mediche stimato dal modello.
+ 
+```{r}
+
+```
+
+Risposta:
+
+**Punto d.** Aggiungere al modello la variabile `smoker` e valutare l’introduzione dell’interazione tra `age` e `smoker`. 
+Valutare il modello e ripetere i punti b e c.
+
+```{r}
+
+```
+
+Risposta:
+
+
+**Punto e.** Qual è la spesa medica attesa per un individuo di 40 anni fumatore? E per un individuo della stessa età non fumatore?
+
+```{r}
+
+```
+
+Risposta:
+
+## Esercizio 4
+
+Nel file `wages.csv`, disponibile su moodle, sono registrate, per un campione di lavoratori, le seguenti variabili: 
+
+ - `exper`: anni di esperienza lavorativa (in anni), 
+ - `sex`: genere (1 se donna) 
+ - `school`: scolarità (in anni), 
+ - `wage`: remunerazione oraria.
+ 
+**Punto  a.** Volendo stimare un modello di regressione lineare che consideri la variabile remunerazione oraria come variabile risposta, visualizzare e commentare le relazioni a coppie tra la variabile `wage` e le altre presenti nel data set con opportuni strumenti grafici e numerici.
+ 
+```{r}
+
+```
+
+Risposta:
+
+
+**Punto  b.** Stima un modello di regressione lineare semplice utilizzando solo gli anni di esperienza (`exper` come variabile esplicativa)
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  c.** Ottieni i residui della regressione semplice e fai il grafico dei residui contro le restanti variabili (sesso incluso). Che indicazioni potresti ricavare da questa analisi?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  d.** Stima un opportuno modello di regressione multipla, giustificando le scelte effettuate in termini di selezione del modello.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  e.** Quanta remunerazione aggiuntiva ci si può attendere, a parità del resto, per ogni anno di esperienza in più?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  f.** Per un individuo di sesso maschile, con 11 anni di scolarità e 7 di esperienza lavorativa, quale remunerazione ci si attende?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  g.** Potrebbe aver senso considerare una trasformazione della variabile risposta? E delle esplicative?
+
+```{r}
+
+```
+
+Risposta:
+
+
+
+## Esercizio 5
+Il dataset `mtcars`, disponibile in `R`, contiene caratteristiche di 32 automobili degli anni '70. Le variabili principali sono: `mpg` (miglia per gallone), `hp` (cavalli), `wt` (peso in migliaia di libbre), `disp` (cilindrata).
+
+**Punto  a.** Si calcoli la correlazione marginale tra `mpg` e `hp`. Il segno è quello atteso?
+
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  b.** Si osserva che `hp` e `wt` sono entrambe correlate con `mpg`. Si calcoli la correlazione parziale tra `mpg` e `hp` al netto di `wt`, usando il metodo dei residui. La correlazione diminuisce rispetto a quella marginale?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto  c.** Si calcoli la stessa correlazione parziale usando la formula diretta:
+    $$r_{xy.z} = \frac{r_{xy} - r_{xz}\,r_{yz}}{\sqrt{1-r_{xz}^2}\,\sqrt{1-r_{yz}^2}}$$
+    e si verifichi che il risultato coincida con quello ottenuto al punto b.
+    
+
+```{r}
+
+```
+
+Risposta:
+
+## Esercizio 6
+I dati presenti nel file `sanita.txt` si riferiscono a un rilevamento ISTAT sui servizi sanitari delle regioni italiane. Le variabili riportano il numero di medici per 10000 abitanti (`medici`), il numero di posti ospedalieri per 10000 abitanti (`postiletto`),il numero di pediatri per 10000 abitanti di età inferiore ai 14 anni (`pediatri`), il numero annuo di interventi di pronto soccorso per 1000 abitanti (`interv_PS`), e la percentuale di persone che si sono dichiarate soddisfatte dell'assistenza medica ospedaliera (`soddisfaz`).
+
+**Punto a.** Valutare la possibilità di standardizzare le variabili del dataset e motivare la scelta.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto b.** Calcolare la matrice delle distanze, scegliendo un'opportuna metrica. Qual è la distanza tra Piemonte e Lombardia? E tra Lombardia e Trentino-AltoAdige?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto c.** Valutare, attraverso il coefficiente di aggregazione e il dendrogramma, i diversi linkage applicati alla matrice delle distanze selezionata. Quali sono le differenze in termini di forma del dendrogramma? Quale linkage sembra essere il più appropriato? 
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto d.** Basandosi sulla scelta al punto precedente, visualizzare sul dendrogramma dell'aggregazione il taglio con il numero di cluster più appropriato e il raggruppamento ottenuto. Valutare le differenze in termini di raggruppamento per un numero di cluster inferiore o superiore di 1 rispetto al numero selezionato.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto e.** Tagliare l'albero e visualizzare i) la tabella di frequenza dei gruppi, ii) il nome delle regioni in ogni gruppo.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto f.** Calcolare le medie e le deviazioni standard delle variabili condizionatamente a ciascun cluster e descrivere le principali differenze tra i cluster.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto g.** Si consideri l'algoritmo PAM con lo stesso numero di cluster selezionato per il clustering gerarchico. Estrarre i medoidi dei cluster ed aggiugerli alla matrice degli scatterplot selezionando un simbolo diverso dalle osservazioni. Colorare le osservazioni rispetto alla classificazione ottenuta. Hint: provare con ggpairs oppure stampando i singoli scatterplot e combinandoli in un unico grafico.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto h.** Confronta i cluster ottenuti con il metodo gerarchico e con il PAM. Le regioni sono raggruppate allo stesso modo? Se ci sono differenze, quali regioni cambiano gruppo?
+
+```{r}
+
+```
+
+Risposta:
+
+## Esercizio 7 
+Generare i dati eseguendo il codice di seguito:
+
+```{r}
+set.seed(123)
+
+blob1 <- data.frame(x = rnorm(300, mean = 0,  sd = 0.3),
+                    y = rnorm(300, mean = 0,  sd = 0.3),
+                    true_label = 1)
+blob2 <- data.frame(x = rnorm(300, mean = 4,  sd = 1.2), 
+                    y = rnorm(300, mean = 4,  sd = 1.2),
+                    true_label = 2)
+blob3 <- data.frame(x = rnorm(300, mean = 0,  sd = 0.5), 
+                    y = rnorm(300, mean = 5,  sd = 0.5),
+                    true_label = 3)
+noise <- data.frame(x = runif(100, -4, 8),                 
+                    y = runif(100, -4, 9),
+                    true_label = 0)
+
+blobs <- rbind(blob1, blob2, blob3, noise)
+```
+
+**Punto a.** Si ottenga una rappresentazione grafica dei dati.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto b.** Applicare l'algoritmo DBSCAN dopo aver opportunamente scelto `minPts` e `eps`.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto c.** Colorare i punti nel grafico eseguito al punto a. secondo la classificazione ottenuta.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto d.** Ripetere la classificazione utilizzando il k-means e confrontare i risultati. Quale dei due sembra riuscire a catturare meglio i cluster presenti nei dati? Motivare la risposta.
+
+```{r}
+
+```
+
+Risposta:
+
+## Esercizio 8 
+I dati presenti nel file `Auto.txt` riguardano **38 autovetture**. Le variabili quantitative considerate sono:
+
+| Variabile | Descrizione |
+|---|---|
+| `percorrenza` | Chilometri percorsi con un litro di carburante |
+| `peso` | Peso in tonnellate |
+| `rapporto` | Rapporto di trasmissione al ponte |
+| `potenza` | Potenza in HP |
+| `cilindrata` | Cilindrata in cm³ |
+| `num_cil` | Numero di cilindri |
+| `ripresa` | Secondi per percorrere da fermo un quarto di miglio (402 m) |
+
+E' inoltre disponibile la variabile categoriale `nazione`.
+
+**Punto a.** Si effettui un'analisi esplorativa attraverso `ggpairs` e si commentino i risultati.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto b.** Si effetti una PCA e si scelga il numero di componenti, motivando tale scelta.
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto c.** Quali variabili "dominano" la prima e quali la seconda compoenente?
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto d.** Costruire i grafici delle variabili e delle osservazioni (con indicazione della nazioni).
+
+```{r}
+
+```
+
+Risposta:
+
+**Punto e.** Commentare complessivamente i risultati dell'analisi in componenti principali
+e in particolar modo indicare da che cosa sono caratterizzate le auto di diversa nazionalità. 
+
+```{r}
+
+```
+
+Risposta:
