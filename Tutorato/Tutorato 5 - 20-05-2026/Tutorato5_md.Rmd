@@ -1,0 +1,132 @@
+---
+title: "Tutorato 5"
+author: "Sara Trabucco"
+date: "20 Maggio 2026"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Caricare il dataset `marketing_campaign.csv` (che trovate anche su [Kaggle](https://www.kaggle.com/datasets/imakash3011/customer-personality-analysis?resource=download)); poi:
+
+## Preprocessing del dataset
+
+-   Classificare le principali variabili del dataset; che variabili potrebbero essere più adatte ad una cluster analysis (considerando che l'obiettivo è una *customer personality analysis*, utile per le aziende per comprendere la propria clientela)?
+
+-   Verificare la presenza di valori mancanti (dove compaiono, quanti sono, etc.) e rimuoverli dal dataset;
+
+-   Analizzare le variabili qualitative, trasformarle in factor e ricodificare i livelli;
+
+-   Creare le variabili:
+
+    -   `Age` (età del cliente)
+
+    -   `Total_spending` (spesa totale su tutti i prodotti)
+
+    -   `Total_purchases` (numero totale degli acquisti)
+
+-   Standardizzare (ove opportuno) le variabili;
+
+```{r}
+# to-do
+```
+
+## Analisi esplorativa
+
+-   Considerare le variabili `Income`, `Age`, `Total_spending`, `Total_purchases`, `NumWebVisitsMonth` e calcolare indici di posizione, indici di dispersione, rappresentarne graficamente la distribuzione e analizzare eventuali outlier;
+
+-   Costruire scatterplot e matrice di correlazione tra le principali variabili quantitative; che relazioni emergono?
+
+-   Calcolare la matrice delle distanza utilizzando la distanza euclidea e distanza di Manhattan;
+
+-   Che misura di *dissimilarità* è appropriato usare con variabili qualitative?
+
+```{r}
+# to-do
+```
+
+## Clustering gerarchico
+
+-   Applicare clustering gerarchico utilizzando *single linkage, complete linkage, average linkage* e *Ward*;
+
+-   Per ciascun metodo rappresentare il dendrogramma; cosa si può osservare?
+
+-   Utilizzando il metodo di Ward, scegliere un numero appropriato di cluster;
+
+```{r}
+# to-do
+```
+
+## K-means
+
+-   Applicare l'algoritmo K-means ai dati standardizzati; determinare un numero appropriato di cluster considerando:
+
+    -   il *metodo del gomito* (Elbow Method);
+
+    -   il *silhouette score*;
+
+-   Una volta scelto K:
+
+    -   rappresentare graficamente i cluster;
+
+    -   analizzare i centroidi;
+
+```{r}
+# to-do
+```
+
+## PAM
+
+-   Applicare PAM agli stessi dati; confrontare poi PAM e K-means rispetto alla robustezza agli outlier, interpretabilità e struttura dei cluster;
+
+-   Applicare PAM utilizzando una matrice di dissimilarità basata su Gower e confrontare i risultati con PAM ottenuto al punto precedente;
+
+```{r}
+# to-do
+```
+
+## DBSCAN
+
+-   Applicare DBSCAN scegliendo *opportunamente* `eps` e `minPts`; identificare cluster e rumore e identificare graficamente i risultati.
+
+-   DBSCAN individua clienti anomali? Quali vantaggi ha rispetto a K-means?
+
+```{r}
+# to-do
+```
+
+## PCA
+
+-   Applicare l'analisi delle componenti principali (PCA) ai dati standardizzati;
+
+-   Si produca un grafico contenente la fedeltà della proiezione per numero di componenti e le osservazioni sulle prime due componenti;
+
+-   Rappresentare i cluster ottenuti tramite K-means sulle prime due componenti: emergono gruppi chiaramente separati?
+
+```{r}
+# to-do
+```
+
+## Confronto tra algoritmi
+
+-   Confrontare:
+
+    -   clustering gerarchico
+
+    -   K-means
+
+    -   PAM
+
+    -   DBSCAN
+
+    utilizzando silhouette, dimensione dei cluster, interpretabilità e sensibilità agli outlier.
+
+-   Quale algoritmo sembra essere più adatto per questo dataset?
+
+```{r}
+# to-do
+```

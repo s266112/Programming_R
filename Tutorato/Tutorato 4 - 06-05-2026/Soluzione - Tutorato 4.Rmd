@@ -1,0 +1,301 @@
+---
+title: "Soluzione - Tutorato 4"
+output:
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex
+date: "2026-04-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+## Esercizio 1
+
+Caricare il dataset `student_performance_data.csv` (di cui potete trovare i dettagli su [Kaggle](https://www.kaggle.com/datasets/borovai0/student-performance-analytics-dataset)).
+
+```{r}
+# Carico il dataset
+studenti <- read.csv("student_performance_data.csv")
+
+# Pulizia NA (come fatto nel Tutorato 3)
+studenti_clean <- na.omit(studenti)
+
+# Ricodifico le variabili
+studenti_clean$gender <- as.factor(studenti_clean$gender)
+studenti_clean$internet_access <- as.factor(studenti_clean$internet_access)
+studenti_clean$extra_classes <- as.factor(studenti_clean$extra_classes)
+studenti_clean$parent_education <- as.factor(studenti_clean$parent_education)
+
+# Grade come fattore ordinato
+studenti_clean$grade <- factor(
+  studenti_clean$grade,
+  levels = c("F", "D", "C", "B", "A"),
+  ordered = TRUE
+)
+
+# Ricreo study_time e attendance
+studenti_clean$study_time <- cut(
+  studenti_clean$study_hours_per_day,
+  breaks = c(-Inf, 3, 6, Inf),
+  labels = c("low", "medium", "high")
+)
+
+studenti_clean$attendance <- cut(
+  studenti_clean$attendance_percentage,
+  breaks = c(-Inf, 60, 80, Inf),
+  labels = c("low", "medium", "high")
+)
+```
+
+***
+## 🔹 Punto 1: Test χ² per indipendenza
+
+1. Verificare tramite test $\chi^2$ se `study_time` e `grade` sono indipendenti; fare la stessa cosa per `attendance` e `grade`.
+
+## ✏️ Svolgimento
+
+```{r}
+# Tabella di contingenza study_time vs grade
+tab_study_grade <- table(studenti_clean$study_time, studenti_clean$grade)
+tab_study_grade
+
+# Test chi-quadrato
+chisq_test_study <- chisq.test(tab_study_grade)
+chisq_test_study
+
+# Tabella di contingenza attendance vs grade
+tab_att_grade <- table(studenti_clean$attendance, studenti_clean$grade)
+tab_att_grade
+
+# Test chi-quadrato
+chisq_test_att <- chisq.test(tab_att_grade)
+chisq_test_att
+
+```
+
+
+## 💥 Risposta
+
+- ***study_time vs grade***: p-value = ***0.5344*** → non significativo (p > 0.05), ***nessuna dipendenza***.
+
+- ***attendance vs grade***: p-value = ***0.9771*** → non significativo (p > 0.05), ***nessuna dipendenza***.
+
+
+***
+## 🔹 Punto 2 - ANOVA tra study_time e overall_score
+
+1. Studiare la relazione tra `study_time` e `overall_score`:  
+
+    -   rappresentare graficamente `overall_score` rispetto ai gruppi di `study_time` tramite boxplot;  
+
+    -   costruire il modello ANOVA a un fattore;  
+
+    -   calcolare la devianza totale, quella *within* e quella *between*;  
+
+    -   calcolare e interpretare l'indice $\eta^2$.  
+
+```{r}
+# Boxplot di overall_score per gruppi di study_time
+boxplot(overall_score ~ study_time,
+        data = studenti_clean,
+        col = c("lightblue", "lightgreen", "salmon"),
+        main = "Overall Score vs Study Time",
+        xlab = "Study Time",
+        ylab = "Overall Score")
+
+# Modello ANOVA
+mod_anova <- aov(overall_score ~ study_time, data = studenti_clean)
+summary(mod_anova)
+
+# Estrazione delle devianze dalla tabella ANOVA
+tab_anova <- summary(mod_anova)[[1]]
+dev_between <- tab_anova[1, 2]  # Sum Sq tra i gruppi
+dev_within <- tab_anova[2, 2]   # Sum Sq entro i gruppi
+dev_tot <- dev_between + dev_within
+
+# Calcolo di eta_2
+eta_2 <- dev_between / dev_tot
+
+# Output dei risultati
+cat("Devianza between:", dev_between, "\n")
+cat("Devianza within:", dev_within, "\n")
+cat("Devianza totale:", dev_tot, "\n")
+cat("Eta_2:", eta_2, "\n")
+```
+
+
+## 💥 Risposta
+- ***Boxplot***: distribuzioni simili tra i tre gruppi, nessuna differenza evidente.
+
+- ***ANOVA***: p-value = ***0.649*** → non significativo (p > 0.05). Le medie di *overall_score* non differiscono tra i gruppi *study_time*.
+
+- ***Devianze***: DEV_between = 196.46, DEV_within = 207275.59, DEV_tot = 207472.05.
+
+- ***η² = 0.000947*** → Lo 0.095% della variabilità è spiegata da study_time. Effetto trascurabile.
+
+
+***
+## 🔹 Punto 3 - Correlazione
+
+1.  Calcolare la correlazione tra le variabili:
+
+    -   `study_hours_per_day`
+
+    -   `sleep_hours`
+
+    -   `attendance_percentage`
+
+    e la variabile `overall_score`.
+
+```{r}
+# Matrice di correlazione
+cor_matrix <- cor(studenti_clean[, c("study_hours_per_day", "sleep_hours", "attendance_percentage", "overall_score")],
+                  use = "complete.obs")
+round(cor_matrix, 4)
+
+# Solo le correlazioni con overall_score
+cor(studenti_clean$overall_score, studenti_clean$study_hours_per_day, use = "complete.obs")
+cor(studenti_clean$overall_score, studenti_clean$sleep_hours, use = "complete.obs")
+cor(studenti_clean$overall_score, studenti_clean$attendance_percentage, use = "complete.obs")
+```
+
+## 💥 Risposta
+- **study_hours_per_day** vs **overall_score: -0.0235** (quasi nulla)
+
+- **sleep_hours** vs **overall_score: -0.0242** (quasi nulla)
+
+- **attendance_percentage** vs **overall_score: 0.2120** (correlazione debole/positiva)
+
+Nessuna delle tre variabili ha una correlazione forte con *overall_score*. La più alta è *attendance_percentage*, ma è comunque debole
+
+
+***
+## 🔹 Punto 4 - Scelta del regressore
+
+1.  Vogliamo ora costruire un modello di regressione lineare semplice per prevedere `overall_score`. Che variabili potremmo considerare?
+
+```{r}
+# Modelli con diversi regressori
+mod1 <- lm(overall_score ~ study_hours_per_day, data = studenti_clean)
+mod2 <- lm(overall_score ~ sleep_hours, data = studenti_clean)
+mod3 <- lm(overall_score ~ attendance_percentage, data = studenti_clean)
+
+summary(mod1)
+summary(mod2)
+summary(mod3)
+```
+
+## 💥 Risposta
+Tra le tre variabili, **attendance_percentage** ha la correlazione più alta con *overall_score* (0.212).  
+Scegliamo quindi *attendance_percentage* come regressore.
+
+
+***
+## 🔹 Punto 5 - Analisi dei residui
+1.  Analizzare i residui del modello scelto: possiamo dire sia adeguato?
+
+```{r}
+# Grafici diagnostici del modello
+par(mfrow = c(2, 2))
+plot(mod3)
+
+# Test di normalità (usando Kolmogorov-Smirnov perché n > 5000)
+ks.test(scale(residuals(mod3)), "pnorm")
+```
+
+## 💥 Risposta
+- **QQ plot**: i punti si discostano dalla retta nelle code → leggera non-normalità.
+
+- **Residui vs fitted**: dispersione abbastanza costante → omoschedasticità accettabile.
+
+- **Scale-Location**: trend piatto → varianza costante.
+
+- **Residui vs Leverage**: nessun punto oltre la distanza di Cook → nessun outlier influente.
+
+- **Kolmogorov-Smirnov**: p-value < 0.05 → i residui **non sono perfettamente normali** (comune con campioni grandi).
+
+Il modello è **accettabile** e i residui non presentano problemi gravi. La non-normalità è leggera e dovuta alla numerosità del campione.
+
+
+***
+## 🔹 Punto 6 - Confronto tra modelli
+1.  Costruire diversi modelli variando il regressore; come possiamo confrontarli? Quale sembra essere il più adeguato?
+
+```{r}
+# Modelli con diversi regressori
+mod_att <- lm(overall_score ~ attendance_percentage, data = studenti_clean)
+mod_study <- lm(overall_score ~ study_hours_per_day, data = studenti_clean)
+mod_sleep <- lm(overall_score ~ sleep_hours, data = studenti_clean)
+mod_assignment <- lm(overall_score ~ assignment_score, data = studenti_clean)
+mod_midterm <- lm(overall_score ~ midterm_score, data = studenti_clean)
+mod_final <- lm(overall_score ~ final_exam_score, data = studenti_clean)
+mod_participation <- lm(overall_score ~ participation_score, data = studenti_clean)
+
+# Modello con più variabili
+mod_multi <- lm(overall_score ~ attendance_percentage + study_hours_per_day + 
+                sleep_hours + assignment_score + midterm_score + 
+                final_exam_score + participation_score, 
+                data = studenti_clean)
+
+# Confronto R² aggiustati
+summary(mod_att)$adj.r.squared
+summary(mod_study)$adj.r.squared
+summary(mod_sleep)$adj.r.squared
+summary(mod_assignment)$adj.r.squared
+summary(mod_midterm)$adj.r.squared
+summary(mod_final)$adj.r.squared
+summary(mod_participation)$adj.r.squared
+summary(mod_multi)$adj.r.squared
+
+# AIC per confronto
+AIC(mod_att, mod_study, mod_sleep, mod_assignment, mod_midterm, 
+    mod_final, mod_participation, mod_multi)
+```
+
+## 💥 Risposta
+- **Modello migliore**: Quello con più variabili (R² aggiustato = 0.9977 e AIC più basso).
+
+- **Tra i modelli semplici**: *assignment_score* ha R² aggiustato = 0.952, il più alto tra i singoli predittori.
+
+- **Ordine di importanza** (da R² più alto): assignment_score > midterm_score > final_exam_score > participation_score > attendance_percentage.
+
+Il modello più adeguato è quello con **tutte le variabili**, perché spiega quasi tutta la variabilità di *overall_score*. Se si vuole un modello più parsimonioso, *assignment_score* da sola è già un ottimo predittore.
+
+
+***
+## 🔹 Punto 7 - Confronto retta lineare vs lowess()
+1.  Confrontare la retta lineare e la curva ottenuta tramite la funzione `lowess()`: la relazione appare lineare?
+
+```{r}
+# Grafico con retta lineare e curva lowess
+plot(studenti_clean$attendance_percentage, 
+     studenti_clean$overall_score,
+     main = "Confronto retta lineare vs lowess()",
+     xlab = "Attendance Percentage",
+     ylab = "Overall Score",
+     pch = 16, col = "lightgray", cex = 0.5)
+
+# Retta di regressione lineare
+abline(mod3, col = "blue", lwd = 2)
+
+# Curva lowess
+lines(lowess(studenti_clean$attendance_percentage, 
+             studenti_clean$overall_score), 
+      col = "red", lwd = 2)
+
+legend("bottomright", 
+       legend = c("Lineare", "lowess"), 
+       col = c("blue", "red"), 
+       lwd = 2)
+```
+
+## 💥 Risposta
+- La retta lineare (blu) e la curva lowess (rossa) sono **sovrapponibili**.
+
+- La relazione tra *attendance_percentage* e *overall_score* appare sostanzialmente lineare.
+
+- Non si osservano curvature o pattern non-lineari rilevanti.
+

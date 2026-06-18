@@ -1,0 +1,112 @@
+---
+title: "Esercitazione 2"
+author: "Sara Trabucco"
+date: "3 Giugno 2026"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Nome e cognome:**
+
+**N. mat.:**
+
+------------------------------------------------------------------------
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. I file pdf e Rmd entrambi vanno consegnati tramite moodle.
+
+1.  Accertarsi che il file compili correttamente prima di iniziare l'esame
+
+2.  Compilare (e salvare!) spesso
+
+3.  Se non si riesce a risolvere l'errore di compilazione, utilizzare l'opzione `eval = F` nelle opzioni del chunk, ad esempio:
+
+\begin{verbatim}
+{r, eval=FALSE}
+summary(dataset)
+plot(x, y)
+\end{verbatim}
+
+------------------------------------------------------------------------
+
+## R
+
+### Esercizio 1.
+
+Scrivere una funzione che prenda in input tre vettori numerici della stessa lunghezza: `pressione`, `colesterolo` e `glicemia`.
+
+La funzione, denominata `classifica_pazienti()` deve verificare che gli input siano corretti e poi:
+
+-   creare una variabile `Rischio` con tre livelli:
+
+    -   *Basso* se `pressione` è minore di 130, `colesterolo` è minore di 200 e `glicemia` è minore di 100;
+
+    -   *Medio* se almeno una ed al massimo una è fuori da una delle soglie fissate al punto precedente;
+
+    -   *Alto* se due condizioni o più sono fuori dalle medesime soglie.
+
+-   restituire una lista composta da un dataframe contenente le variabili originali e la nuova variabile `Rischio` e dalla tabella delle frequenze assolute di `Rischio`
+
+## Analisi dei Dati
+
+Si considerino i dati contenuti nel file `salute.csv`. Si tratta di un dataset composto da dati raccolti su 387 pazienti, in particolare 8 (`Eta`, `BMI`, `Pressione`, `Colesterolo`, `AttivitaFisica`, `Glicemia`, `Sesso`, `Fumatore`).
+
+**1.** Calcolare media, mediana e deviazione standard della variabile `Pressione`;
+
+**2.** Costruire un boxplot di `Pressione` rispetto a `Fumatore`. Cosa si osserva?
+
+**3.** Calcolare la matrice di correlazione tra le variabili quantitative. Quale coppia presenta la correlazione più alta?
+
+**4.** Calcolare il test $\chi^2$ tra `Sesso` e `Fumatore`. Le due variabili risultano associate? Perché?
+
+**5.** Stimare il modello di regressione lineare con variabile di risposta `Pressione` e come regressori `Eta`, `BMI`, `Fumatore`:
+
+     **5.1** Quali variabili sono statisticamente significative?
+
+     **5.2** Intepretare il coefficiente associato a `FumatoreSi`;
+
+     **5.3** Calcolare la percentuale di devianza spiegata dal modello;
+
+     **5.4** La pressione per un paziente fumatore con un'età di 50 anni ed un BMI di 27 prevista dal modello è circa:
+
+-   [ ] 150 mmHg
+
+-   [ ] 170 mmHg
+
+-   [ ] 157 mmHg
+
+-   [ ] 162 mmHg
+
+     **5.5** Stimare il modello che ha la stessa variabile di risposta ma come predittore e l'interazione tra `BMI` e `Fumatore`; possiamo dire che l'effetto del BMI sulla pressione cambia tra fumatori e non fumatori? Perché?
+
+     **5.6** Quale delle seguenti affermazioni è corretta?
+
+-   [ ] il termine `BMI:FumatoreSi` indica se l'effetto del BMI sulla pressione è diverso tra fumatori e non
+
+-   [ ] il termine `BMI:FumatoreSi` elimina l'effetto principale del BMI
+
+-   [ ] il termine `BMI:FumatoreSi` rappresenta la media del BMI nei fumatori
+
+-   [ ] il termine `BMI:FumatoreSi` indica la correlazione tra BMI e fumo
+
+**6.** Standardizzare le variabili quantitative del dataset e salvarle in un oggetto `DataScaled`;
+
+**7.** Applicare clustering gerarchico a `DataScaled` utilizzando il metodo di Ward:
+
+     **7.1** Rappresentare il dendrogramma;
+
+     **7.2** Costruire il plot delle altezze e, rispetto a tale grafico, scegliere un numero appropriato di cluster e motivarne il perché;
+
+     **7.3** Riportare la numerosità di ciascun gruppo ottenuto;
+
+     **7.4** Descrivere brevemente le caratteristiche dei cluster ottenuti considerando le medie delle variabili quantitative.
+
+**8.** Applicare PCA alle variabili standardizzate:
+
+     **8.1** Quanta variabilità viene spiegata dalle prime due componenti?
+
+     **8.2** Costruire un grafico delle prime due componenti e colorarlo rispetto ai cluster ottenuti in precedenza; i gruppi sembrano ben separati?

@@ -1,0 +1,137 @@
+---
+title: "Esercitazione Data Analytics"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: margin=2cm
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Nome e cognome:**
+
+**N. mat.:**
+
+------------------------------------------------------------------------
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. I file pdf e Rmd entrambi vanno consegnati tramite moodle.
+
+1.  Accertarsi che il file compili correttamente prima di iniziare l'esame
+
+2.  Compilare (e salvare!) spesso
+
+3.  Se non si riesce a risolvere l'errore di compilazione, utilizzare l'opzione `eval = F` nelle opzioni del chunk, ad esempio:
+
+\begin{verbatim}
+{r, eval=FALSE}
+summary(dataset)
+plot(x, y)
+\end{verbatim}
+
+------------------------------------------------------------------------
+
+## R
+
+### Esercizio 1.
+
+Scrivere una funzione che prenda in input un numero intero $n>10$. La funzione, dopo aver controllato che l'argomento rispetti la condizione richiesta, genererà un `data.frame` contenente $n$ osservazioni con le seguenti variabili:
+
+-   `Eta`: valori interi casuali **compresi tra 18 e 70**;
+
+-   `Altezza`: valori generati da una **distribuzione normale** con **media 170** e **varianza 100**;
+
+-   `Peso`: valori ottenuti come **0.7 volte l'altezza meno 50**, a cui viene **aggiunto un termine casuale** $\varepsilon$ (*rumore*) generato da una distribuzione normale con media 0 e deviazione standard 8, ossia:
+
+$$
+Peso = 0.7 \times Altezza -50 + \varepsilon
+$$
+
+-   `OreStudio`: valori interi casuali **compresi tra 0 e 10**;
+
+-   `Lavoro`: valori casuali che possono essere **o 0 o 1**; trasformare poi tale variabile in `factor` e rinominare i livelli come 0="No" e 1="Si".
+
+La funzione, che dovrà essere chiamata `funzione`, dovrà restituire il `data.frame` generato.
+
+### Esercizio 2
+
+Estendere la funzione del punto precedente in modo tale che restituisca una **lista** contenente:
+
+-   il `data.frame` generato;
+
+<!-- -->
+
+-   la media di ciascuna variabile numerica;
+
+-   la matrice di correlazione tra le variabili;
+
+-   il numero di individui con `Peso` superiore alla media del campione;
+
+-   la tabella delle frequenze assolute della variabile `Lavoro`;
+
+-   il `data.frame` ordinato in ordine decrescente rispetto a `OreStudio`.
+
+Provare poi la funzione impostando `set.seed(123)`, $n=50$ e estrarre la matrice di correlazione.
+
+## Analisi dei Dati
+
+Si considerino i dati contenuti nel file `animali.csv`. Si tratta di informazioni raccolte su 300 animali. La variabile `Peso` indica il peso in kg, `Altezza` l'altezza in cm, `Eta` l'età in anni, `OreSonno` le ore medie di sonno giornaliere. Sono inoltre presenti variabili qualitative, quali `Specie`, `Sesso` e `Domestico`.
+
+**1.** Quanto vale la devianza della variabile `Peso`?
+
+**2.** Standardizzare le variabili quantitative e salvarle in un oggetto `DataScaled`, poi calcolare la matrice di covarianza delle nuove variabili. Quale coppia presenta la covarianza maggiore?
+
+**3.** Calcolare la statistica $\chi^2$ per valutare l'associazione tra `Sesso` e `Domestico`; possiamo concludere che tra le due variabili sono in qualche modo associate? Perché?
+
+**4.** Creare una nuova variabile ottenuta dal prodotto logico di `Specie` e `Domestico`. Quale combinazione presenta la mediana di `Peso` più elevata?
+
+**5.** Stimare una regressione lineare semplice avente come variabile di risposta `Peso` e come predittore `Altezza` e salvarla nell'oggetto `modello`:
+
+     **5.1** La variabile `Altezza` sembra essere significativa? Da cosa possiamo concluderlo?
+
+     **5.2** Quanto vale la percentuale di devianza spiegata?
+
+     **5.3** Costruire uno scatterplot delle variabili `Altezza` e `Peso` e aggiungere, in rosso, la linea di regressione ottenuta;
+
+     **5.4** Quale delle seguenti affermazioni è corretta?
+
+-   [ ] un aumento di 1cm di altezza è associato ad un aumento medio del peso di circa 0.59kg
+
+-   [ ] un aumento di 1cm di altezza provoca sempre un aumento del peso di circa 0.59kg
+
+-   [ ] un aumento di 1kg di peso è associatio ad un aumento medio dell'altezza di 0.59cm
+
+-   [ ] all'aumentare del peso l'altezza diminuisce in media di 0.59kg
+
+     **5.5** Quale delle seguenti affermazioni è corretta osservando il grafico Residuals vs Fitted?
+
+-   [ ] una dispersione casuale dei punti attorno a 0 suggerisce che l'assunzione di linearità sia plausibile
+
+-   [ ] una dispersione casuale dei punti attorno a 0 indica che il modello è perfetto
+
+-   [ ] i residui devono sempre essere tutti positivi
+
+-   [ ] se i residui sono vicini a 0, allora $R^2=1$
+
+     **5.6** Il peso previsto per un animale con altezza pari a 180cm vale circa:
+
+-   [ ] 59.2kg
+
+-   [ ] 102kg
+
+-   [ ] 175.4kg
+
+-   [ ] 82.8kg
+
+**6.** Considerando le sole variabili quantitative standardizzate del dataset contenute nell'oggetto `DataScaled` e applicare l'algoritmo K-means con $k=3$:
+
+     **6.1** Riportare, attraverso un'istruzione di R, i centroidi ottenuti (nella scala originale);
+
+     **6.2** Quanti animali appartengono a ciascun cluster?
+
+     **6.3** Descrivere brevemente le caratteristiche dei cluster ottenuti;
+
+     **6.4** Rappresentare con uno scatterplot le variabili `Altezza` e `Peso` e colorarle rispetto all'appartenenza ai cluster ottenuti.
