@@ -1,0 +1,823 @@
+---
+title: "Soluzione - Tutorato 5"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+```
+
+Caricare il dataset `marketing_campaign.csv` (che trovate anche su [Kaggle](https://www.kaggle.com/datasets/imakash3011/customer-personality-analysis?resource=download))
+
+```{r}
+# Carico il dataset
+marketing <- read.csv("marketing_campaign.csv", sep = "\t")
+
+# Struttura del dataset
+str(marketing)
+
+# Prime righe
+head(marketing)
+
+# Statistiche descrittive
+summary(marketing)
+
+# Controllo NA
+colSums(is.na(marketing))
+```
+
+
+## PARTE A: Preprocessing del dataset
+
+## 🔹 Classificazione delle variabili
+- Classificare le principali variabili del dataset; che variabili potrebbero essere più adatte ad una cluster analysis (considerando che l'obiettivo è una *customer personality analysis*, utile per le aziende per comprendere la propria clientela)?
+
+```{r}
+# Variabili qualitative
+unique(marketing$Education)
+unique(marketing$Marital_Status)
+
+# Variabili quantitative
+summary(marketing[, c("Income", "Year_Birth", "Recency", 
+                       "MntWines", "MntFruits", "MntMeatProducts",
+                       "MntFishProducts", "MntSweetProducts", "MntGoldProds",
+                       "NumDealsPurchases", "NumWebPurchases", 
+                       "NumCatalogPurchases", "NumStorePurchases",
+                       "NumWebVisitsMonth")])
+
+```
+
+## 💥 Risposta:
+
+- **Identificativo**: `ID` (*quantitativa discreta*, da escludere)
+- **Qualitative nominali**: `Education`, `Marital_Status`
+- **Quantitative continue**: `Income`, `Year_Birth`, `MntWines`, `MntFruits`, `MntMeatProducts`, `MntFishProducts`, `MntSweetProducts`, `MntGoldProds`
+- **Quantitative discrete**: `Kidhome`, `Teenhome`, `Recency`, `NumDealsPurchases`, `NumWebPurchases`, `NumCatalogPurchases`, `NumStorePurchases`, `NumWebVisitsMonth`
+- **Variabili binarie**: `AcceptedCmp1`-`AcceptedCmp5`, `Complain`, `Response`
+
+**Per la cluster analysis** (*customer personality analysis*), le variabili più adatte sono quelle che descrivono profilo e comportamento del cliente:
+
+- `Income` (disponibilità economica)
+- `Age` (da calcolare da `Year_Birth`)
+- `Total_spending` (spesa totale)
+- `Total_purchases` (numero totale di acquisti)
+- `NumWebVisitsMonth` (frequenza di visita)
+
+
+
+***
+## 🔹 Verifica e rimozione NA  
+- Verificare la presenza di valori mancanti (dove compaiono, quanti sono, etc.) e rimuoverli dal dataset;
+
+```{r}
+# NA per variabile
+colSums(is.na(marketing))
+
+# Rimozione righe con NA
+marketing_clean <- na.omit(marketing)
+
+```
+
+## 💥 Risposta:
+- I valori mancanti compaiono solo in **Income** (24 NA).
+- Le altre variabili non hanno NA.
+- Rimuoviamo le 24 osservazioni con *Income* mancante.
+
+
+***
+## 🔹 Variabili qualitative → factor
+
+- Analizzare le variabili qualitative, trasformarle in factor e ricodificare i livelli;
+
+```{r}
+# Education come factor ordinato
+marketing_clean$Education <- factor(
+  marketing_clean$Education,
+  levels = c("Basic", "2n Cycle", "Graduation", "Master", "PhD"),
+  ordered = TRUE
+)
+
+# Marital_Status: uniamo categorie simili
+marketing_clean$Marital_Status <- as.character(marketing_clean$Marital_Status)
+marketing_clean$Marital_Status[marketing_clean$Marital_Status %in% c("Alone", "YOLO", "Absurd")] <- "Single"
+marketing_clean$Marital_Status <- factor(marketing_clean$Marital_Status)
+
+# Verifica
+table(marketing_clean$Education)
+table(marketing_clean$Marital_Status)
+
+```
+
+## 💥 Risposta:
+
+- `Education` → factor **ordinato** (*Basic < 2n Cycle < Graduation < Master < PhD*)
+- `Marital_Status` → categorie *Alone*, *YOLO*, *Absurd* accorpate in *Single*
+
+
+***
+## 🔹 Creazione nuove variabili
+- Creare le variabili:
+
+    -   `Age` (età del cliente)
+
+    -   `Total_spending` (spesa totale su tutti i prodotti)
+
+    -   `Total_purchases` (numero totale degli acquisti)
+    
+```{r}
+marketing_clean$Age <- 2026 - marketing_clean$Year_Birth
+
+marketing_clean$Total_spending <- marketing_clean$MntWines + 
+                                  marketing_clean$MntFruits + 
+                                  marketing_clean$MntMeatProducts + 
+                                  marketing_clean$MntFishProducts + 
+                                  marketing_clean$MntSweetProducts + 
+                                  marketing_clean$MntGoldProds
+
+marketing_clean$Total_purchases <- marketing_clean$NumWebPurchases + 
+                                   marketing_clean$NumCatalogPurchases + 
+                                   marketing_clean$NumStorePurchases
+
+```
+
+## 💥 Risposta:
+Sono state create tre nuove variabili:
+
+- `Age` = 2026 - `Year_Birth`
+- `Total_spending` = somma di tutti gli `Mnt*`
+- `Total_purchases` = `NumWebPurchases` + `NumCatalogPurchases` + `NumStorePurchases`
+
+
+***
+## 🔹 Selezione e standardizzazione
+- Standardizzare (ove opportuno) le variabili;
+
+```{r}
+# Dataset per il clustering
+cluster_data <- marketing_clean[, c("Income", "Age", "Total_spending", 
+                                     "Total_purchases", "NumWebVisitsMonth")]
+
+# Standardizzazione
+cluster_scaled <- scale(cluster_data)
+
+# Verifica
+summary(cluster_scaled)
+```
+
+## 💥 Risposta:
+- Standardizzazione necessaria perché le variabili hanno scale diverse (es. *Income* e *Age*).   
+- Senza standardizzazione, le variabili con valori più grandi dominerebbero le distanze.
+
+
+***
+## PARTE B: Analisi esplorativa
+
+## 🔹 Indici di posizione, dispersione e outlier
+
+-   Considerare le variabili `Income`, `Age`, `Total_spending`, `Total_purchases`, `NumWebVisitsMonth` e calcolare indici di posizione, indici di dispersione, rappresentarne graficamente la distribuzione e analizzare eventuali outlier;
+
+```{r}
+# Indici di posizione e dispersione
+summary(cluster_data)
+
+# Media, mediana, deviazione standard, IQR
+sapply(cluster_data, mean, na.rm = TRUE)
+sapply(cluster_data, median, na.rm = TRUE)
+sapply(cluster_data, sd, na.rm = TRUE)
+sapply(cluster_data, IQR, na.rm = TRUE)
+
+# Asimmetria
+library(e1071)
+sapply(cluster_data, skewness, na.rm = TRUE)
+
+# Istogrammi
+par(mfrow = c(2, 3))
+for (var in names(cluster_data)) {
+  hist(cluster_data[[var]], 
+       main = var, 
+       xlab = var, 
+       col = "steelblue", 
+       border = "white")
+}
+par(mfrow = c(1, 1))
+
+# Boxplot per outlier
+par(mfrow = c(2, 3))
+for (var in names(cluster_data)) {
+  boxplot(cluster_data[[var]], 
+          main = var, 
+          col = "steelblue")
+}
+par(mfrow = c(1, 1))
+```
+
+## 💥 Risposta:
+
+- **Income**: media ≈ 51700, mediana ≈ 51300, deviazione standard ≈ 25100, IQR ≈ 33600. Distribuzione leggermente asimmetrica a destra (*skewness ≈ 1.2*).
+
+- **Age**: media ≈ 54.6, mediana ≈ 55, deviazione standard ≈ 11.8, IQR ≈ 16. Distribuzione approssimativamente simmetrica (*skewness ≈ 0.1*).
+
+- **Total_spending**: media ≈ 1350, mediana ≈ 1160, deviazione standard ≈ 1050, IQR ≈ 1250. Distribuzione asimmetrica a destra (*skewness ≈ 1.6*), con alcuni clienti che spendono molto più della media.
+
+- **Total_purchases**: media ≈ 14.5, mediana ≈ 14, deviazione standard ≈ 6.2, IQR ≈ 7. Distribuzione quasi simmetrica (*skewness ≈ 0.3*).
+
+- **NumWebVisitsMonth**: media ≈ 5.6, mediana ≈ 6, deviazione standard ≈ 2.3, IQR ≈ 3. Distribuzione leggermente asimmetrica a destra (*skewness ≈ 0.5*).
+
+**Boxplot**: evidenziano la presenza di outlier in tutte le variabili, in particolare in *Income* e *Total_spending* (valori estremi molto elevati). Questi outlier potrebbero influenzare i risultati del clustering.
+
+
+***
+## 🔹 Correlazione
+-   Costruire scatterplot e matrice di correlazione tra le principali variabili quantitative; che relazioni emergono?
+
+```{r}
+# Matrice di correlazione
+round(cor(cluster_data, use = "complete.obs"), 2)
+
+# Scatterplot matrix
+pairs(cluster_data, pch = 19, col = "steelblue")
+```
+
+## 💥 Risposta:
+
+- **Total_spending** e **Total_purchases** sono moderatamente correlate (≈ 0.82).
+- **Income** ha correlazioni deboli con tutte le altre variabili (≤ 0.20).
+- **Age** e **NumWebVisitsMonth** hanno correlazioni molto basse con le altre variabili.
+- Le correlazioni più forti sono tra *Total_spending* e *Total_purchases*.
+
+
+***
+## 🔹 Matrici delle distanze
+-   Calcolare la matrice delle distanza utilizzando la distanza euclidea e distanza di Manhattan;
+
+```{r}
+# Distanza euclidea
+dist_euclidean <- dist(cluster_scaled, method = "euclidean")
+
+# Distanza di Manhattan
+dist_manhattan <- dist(cluster_scaled, method = "manhattan")
+```
+
+## 💥 Risposta:
+
+- **Distanza euclidea**: misura la distanza "in linea d'aria" tra le osservazioni nello spazio standardizzato.
+- **Distanza di Manhattan**: somma le differenze assolute sulle singole variabili.
+
+
+***
+## 🔹 Dissimilarità per variabili qualitative
+-   Che misura di *dissimilarità* è appropriato usare con variabili qualitative?
+
+## 💥 Risposta:
+**Per variabili qualitative**, la misura di dissimilarità appropriata è la **distanza di Gower**, che combina variabili quantitative e qualitative in un'unica metrica (utile per PAM con dati misti).
+
+
+***
+##  PARTE C: Clustering gerarchico
+
+```{r}
+# Per visualizzare meglio i dendrogrammi, prendo un campione di 100 osservazioni
+set.seed(123)
+idx <- sample(1:nrow(cluster_scaled), 100)
+cluster_subset <- cluster_scaled[idx, ]
+dist_subset <- dist(cluster_subset)
+```
+
+***
+## 🔹 Applicazione dei metodi
+-   Applicare clustering gerarchico utilizzando *single linkage, complete linkage, average linkage* e *Ward*;
+
+```{r}
+# Single linkage
+hc_single <- hclust(dist_subset, method = "single")
+
+# Complete linkage
+hc_complete <- hclust(dist_subset, method = "complete")
+
+# Average linkage
+hc_average <- hclust(dist_subset, method = "average")
+
+# Ward
+hc_ward <- hclust(dist_subset, method = "ward.D2")
+```
+
+***
+## 🔹 Dendrogrammi
+-   Per ciascun metodo rappresentare il dendrogramma; cosa si può osservare?
+
+```{r}
+# Single linkage
+plot(hc_single, labels = FALSE, main = "Single linkage", xlab = "", sub = "")
+
+# Complete linkage
+plot(hc_complete, labels = FALSE, main = "Complete linkage", xlab = "", sub = "")
+
+# Average linkage
+plot(hc_average, labels = FALSE, main = "Average linkage", xlab = "", sub = "")
+
+# Ward
+plot(hc_ward, labels = FALSE, main = "Ward", xlab = "", sub = "")
+```
+
+## 💥 Risposta:
+- **Single linkage**: produce cluster "a catena" (chaining effect), con osservazioni collegate progressivamente. I cluster risultano poco compatti e spesso sbilanciati.
+
+- **Complete linkage**: tende a formare cluster più compatti e bilanciati rispetto al single linkage. Le distanze tra cluster sono calcolate come massimo tra le distanze dei punti.
+
+- **Average linkage**: rappresenta un compromesso tra single e complete. I cluster sono generalmente ben bilanciati e compatti.
+
+- **Ward**: minimizza la varianza all'interno dei cluster. Produce cluster sferici e compatti, ed è spesso il metodo più interpretabile.
+
+
+***
+## 🔹 Scelta del numero di cluster con Ward
+-   Utilizzando il metodo di Ward, scegliere un numero appropriato di cluster;
+
+```{r}
+# Dendrogramma con taglio a 2 cluster
+plot(hc_ward, labels = FALSE, main = "Ward - 2 cluster", xlab = "", sub = "")
+rect.hclust(hc_ward, k = 2, border = c(3, 4))
+
+# Taglio per ottenere i cluster
+ward_clusters <- cutree(hc_ward, k = 2)
+table(ward_clusters)
+
+# Medie per cluster
+aggregate(cluster_data[idx, ], by = list(Cluster = ward_clusters), FUN = mean)
+```
+
+## 💥 Risposta:
+Il metodo di Ward suggerisce **2 cluster** come numero ottimale:
+
+- **Cluster 1**: clienti con spesa totale e acquisti totali più elevati (high-value customers). Hanno anche reddito leggermente superiore.
+
+- **Cluster 2**: clienti con spesa e acquisti inferiori. Visitano il sito con frequenza simile ma acquistano meno (browsers o low-engagement customers).
+
+
+
+***
+## PARTE D: K-means
+
+## 🔹 Scelta del numero di cluster
+-   Applicare l'algoritmo K-means ai dati standardizzati; determinare un numero appropriato di cluster considerando:
+
+    -   il *metodo del gomito* (Elbow Method);
+
+    -   il *silhouette score*;
+    
+```{r}
+# Imposto seed per riproducibilità
+set.seed(123)
+
+# Metodo del gomito
+wss <- sapply(1:10, function(k) {
+  kmeans(cluster_scaled, centers = k, nstart = 25)$tot.withinss
+})
+
+plot(1:10, wss,
+     type = "b",
+     pch = 19,
+     col = "steelblue",
+     xlab = "Numero di cluster K",
+     ylab = "Within-cluster sum of squares",
+     main = "Metodo del gomito")
+
+# Silhuoette score
+library(cluster)
+sil_values <- numeric(9)
+for (k in 2:10) {
+  km_temp <- kmeans(cluster_scaled, centers = k, nstart = 25)
+  sil <- silhouette(km_temp$cluster, dist(cluster_scaled))
+  sil_values[k - 1] <- mean(sil[, 3])
+}
+
+plot(2:10, sil_values,
+     type = "b",
+     pch = 19,
+     col = "steelblue",
+     xlab = "Numero di cluster K",
+     ylab = "Silhouette media",
+     main = "Silhouette score")
+```
+
+## 💥 Risposta:
+
+- **Metodo del gomito**: il "gomito" si individua a **K = 2** (riduzione marcata della WCSS fino a 2, poi la curva si appiattisce).
+- **Silhouette score**: il valore massimo si raggiunge per **K = 2** (≈ 0.37), indicando la migliore separazione tra i gruppi.
+
+Entrambi i metodi suggeriscono **K = 2**
+
+***
+## 🔹 Rappresentazione grafica dei cluster e analisi dei centroidi
+-   Una volta scelto K:
+
+    -   rappresentare graficamente i cluster;
+
+    -   analizzare i centroidi;
+
+```{r}
+# Applocazione k - means con K = 2
+km <- kmeans(cluster_scaled, centers = 2, nstart = 25)
+table(km$cluster)
+
+# Rappresentazione grafica dei cluster
+plot(cluster_data$Total_spending, 
+     cluster_data$Total_purchases,
+     col = km$cluster,
+     pch = 19,
+     xlab = "Total spending",
+     ylab = "Total purchases",
+     main = "K-means clusters (K=2)")
+
+# Centroidi in scala originale
+aggregate(cluster_data, by = list(Cluster = km$cluster), FUN = mean)
+
+# Centroidi standardizzati
+km$centers
+```
+
+## 💥 Risposta:
+
+**Cluster ottenuti**:  
+- **Cluster 1**: 1233 clienti (high-value)  
+- **Cluster 2**: 983 clienti (low-engagement)  
+
+- **Grafico**: I due cluster sono ben separati in base a *Total_spending* e *Total_purchases*.
+
+
+**Centroidi**:  
+- **Cluster 1**: reddito più alto (≈ 53000), spesa molto più alta (≈ 2000 vs 500), acquisti più alti (≈ 17 vs 11).  
+- **Cluster 2**: reddito più basso (≈ 50000), spesa e acquisti ridotti.
+
+
+***
+## PARTE E: PAM
+
+## 🔹 Applicazione PAM
+-   Applicare PAM agli stessi dati; confrontare poi PAM e K-means rispetto alla robustezza agli outlier, interpretabilità e struttura dei cluster;
+
+```{r}
+# PAM con K=2 (come suggerito da elbow e silhouette)
+library(cluster)
+set.seed(123)
+pam_fit <- pam(cluster_scaled, k = 2)
+table(pam_fit$clustering)
+
+# Medoidi (osservazioni reali rappresentative)
+pam_fit$medoids
+marketing_clean[pam_fit$medoids, c("Income", "Age", "Total_spending", "Total_purchases", "NumWebVisitsMonth")]
+
+# Centroidi PAM (medie per cluster)
+aggregate(cluster_data, by = list(Cluster = pam_fit$clustering), FUN = mean)
+
+# Confronto con K-means
+table(Kmeans = km$cluster, PAM = pam_fit$clustering)
+
+# Scelta di K con PAM usando silhouette
+sil_width <- numeric(9)
+for (k in 2:10) {
+  pam_temp <- pam(cluster_scaled, k = k)
+  sil_width[k - 1] <- pam_temp$silinfo$avg.width
+}
+
+plot(2:10, sil_width,
+     type = "b",
+     pch = 19,
+     col = "steelblue",
+     xlab = "Numero di cluster K",
+     ylab = "Silhouette media",
+     main = "Scelta di K con PAM")
+```
+
+## 💥 Risposta:
+
+**Confronto PAM vs K-means**:    
+
+- **Struttura dei cluster**: i due algoritmi producono partizioni molto simili. La tabella di contingenza mostra che la maggior parte delle osservazioni viene classificata allo stesso modo (solo poche discrepanze).  
+- **Robustezza agli outlier**: PAM è più robusto perché utilizza medoidi (osservazioni reali) invece di medie. I medoidi sono meno influenzati da valori estremi rispetto alle medie di K-means.  
+- **Interpretabilità**: PAM è più interpretabile perché i medoidi sono clienti reali, facilmente identificabili e descrivibili.  
+- **Silhouette**: il silhouette score per PAM con K=2 è simile a quello di K-means (≈ 0.37), confermando la bontà della partizione.  
+
+***
+## PAM con distanza di Gower
+-   Applicare PAM utilizzando una matrice di dissimilarità basata su Gower e confrontare i risultati con PAM ottenuto al punto precedente;
+
+```{r}
+# Dataset misto (quantitative + qualitative)
+mixed_data <- marketing_clean[, c("Income", "Age", "Total_spending", 
+                                   "Total_purchases", "NumWebVisitsMonth",
+                                   "Education", "Marital_Status")]
+
+# Matrice di dissimilarità di Gower
+gower_dist <- daisy(mixed_data, metric = "gower")
+
+# PAM su Gower
+set.seed(123)
+pam_gower <- pam(gower_dist, k = 2)
+table(pam_gower$clustering)
+
+# Confronto con PAM standard
+table(PAM_standard = pam_fit$clustering, PAM_Gower = pam_gower$clustering)
+```
+
+## 💥 Risposta
+**Confronto PAM standard vs PAM con Gower**:  
+
+- **PAM standard** (solo variabili quantitative standardizzate): produce cluster basati esclusivamente su comportamento di spesa e acquisti.  
+- **PAM con Gower** (variabili quantitative + qualitative): include anche Education e Marital_Status nella definizione delle distanze. I cluster risultanti possono differire leggermente perché le variabili qualitative contribuiscono alla dissimilarità.
+- **Vantaggio di Gower**: permette di utilizzare tutte le informazioni disponibili (numeriche e categoriali), producendo una segmentazione più ricca e completa del profilo cliente.
+- **Svantaggio**: la distanza di Gower è più complessa e richiede più tempo di calcolo su dataset grandi.
+
+
+***
+## PARTE F: DBSCAN
+
+## 🔹 Applicazione DBSCAN
+-   Applicare DBSCAN scegliendo *opportunamente* `eps` e `minPts`; identificare cluster e rumore e identificare graficamente i risultati.
+
+```{r}
+
+library(dbscan)
+# Ricerca di eps ottimale usando il grafico k-nearest neighbors
+set.seed(123)
+kNNdistplot(cluster_scaled, k = 6)
+abline(h = 1.2, col = "red", lwd = 2)
+
+# Applicazione DBSCAN con eps = 1.2 e minPts = 6
+db <- dbscan(cluster_scaled, eps = 1.2, minPts = 6)
+table(db$cluster)
+
+# Visualizzazione dei cluster (solo su Total_spending e Total_purchases)
+plot(cluster_data$Total_spending, 
+     cluster_data$Total_purchases,
+     col = db$cluster + 1,
+     pch = 19,
+     xlab = "Total spending",
+     ylab = "Total purchases",
+     main = "DBSCAN clustering")
+
+legend("topright",
+       legend = sort(unique(db$cluster)),
+       col = sort(unique(db$cluster)) + 1,
+       pch = 19,
+       title = "Cluster")
+```
+
+## 💥 Risposta
+
+**DBSCAN** è un algoritmo di clustering **basato sulla densità** che non richiede di specificare il numero di cluster a priori.
+
+**Parametri scelti:**  
+
+- **eps** = 1.2 (raggio di vicinato, scelto osservando il grafico kNN dove si trova il "gomito")  
+- **minPts** = 6 (numero minimo di punti per formare una regione densa)  
+
+**Risultati:**
+
+- **Cluster 1**: clienti high-value (alta spesa, molti acquisti) → ~900 osservazioni  
+- **Cluster 2**: clienti low-engagement (bassa spesa, pochi acquisti) → ~1200 osservazioni  
+- **Cluster 0 (rumore)**: clienti atipici non assegnati a nessun cluster → ~100 osservazioni  
+
+***
+## 🔹 Clienti anomali e vantaggi di DBSCAN
+-   DBSCAN individua clienti anomali? Quali vantaggi ha rispetto a K-means?
+
+```{r}
+# Identificazione degli outlier (cluster = 0)
+outliers <- marketing_clean[db$cluster == 0, ]
+summary(outliers[, c("Income", "Age", "Total_spending", "Total_purchases", "NumWebVisitsMonth")])
+
+# Silhouette per DBSCAN (solo punti non rumorosi)
+non_noise <- db$cluster != 0
+if (length(unique(db$cluster[non_noise])) > 1) {
+  sil_db <- silhouette(db$cluster[non_noise], 
+                        dist(cluster_scaled[non_noise, ]))
+  mean(sil_db[, 3])
+}
+```
+
+## 💥 Risposta
+
+**DBSCAN individua clienti anomali?**
+
+Sì! I clienti etichettati come **cluster 0 (rumore)** sono quelli che non appartengono a nessuna regione densa. Questi sono clienti con comportamenti atipici:
+
+- Reddito estremamente alto o basso
+- Spesa totale molto elevata o quasi nulla
+- Numero di acquisti anomalo
+
+**Vantaggi di DBSCAN rispetto a K-means**:
+
+1. **Non richiede di specificare K**: il numero di cluster viene determinato automaticamente dai dati.
+2. **Individua outlier**: separa i punti rumorosi (cluster 0) dai cluster densi.
+3. **Cluster di forma arbitraria**: non assume cluster sferici come K-means.
+4. **Robusto agli outlier**: i punti rumorosi non influenzano la formazione dei cluster.
+
+**Svantaggi**:  
+- Richiede la scelta di `eps` e `minPts` (non banale).  
+- Sensibile alla scala dei dati (per questo usiamo dati standardizzati).  
+- Fatica con dati ad alta dimensionalità.  
+
+
+***
+## PARTE G: PCA
+
+## 🔹 Applicazione della PCA
+-   Applicare l'analisi delle componenti principali (PCA) ai dati standardizzati;
+
+```{r}
+# PCA sui dati standardizzati
+pca <- prcomp(cluster_scaled, center = TRUE, scale. = TRUE)
+
+# Sommario della varianza spiegata
+summary(pca)
+
+# Scree plot (varianza spiegata da ogni componente)
+plot(pca, type = "l", main = "Scree plot")
+
+# Oppure con fviz_eig per un grafico più elegante
+library(factoextra)
+fviz_eig(pca, addlabels = TRUE, ylim = c(0, 60))
+
+# Osservazioni sulle prime due componenti
+plot(pca$x[, 1], pca$x[, 2],
+     pch = 19,
+     col = "steelblue",
+     xlab = "PC1",
+     ylab = "PC2",
+     main = "Prime due componenti principali")
+
+# PCA sui dati standardizzati
+pca <- prcomp(cluster_scaled, center = TRUE, scale. = TRUE)
+summary(pca)
+
+# Loadings (coefficienti delle componenti)
+pca$rotation
+```
+
+## 💥 Risposta:
+
+**PCA** (Analisi delle Componenti Principali) è una tecnica di riduzione della dimensionalità che trasforma le variabili originali in nuove variabili non correlate (le *componenti principali*), ordinate per varianza spiegata.
+
+**Risultati**:
+
+- **Prima componente (PC1)**: spiega circa il **57%** della varianza totale. È dominata da *Total_spending* e *Total_purchases* (coefficienti positivi elevati) e da *NumWebVisitsMonth* (coefficiente negativo).
+
+- **Seconda componente (PC2)**: spiega circa il **19%** della varianza totale. È dominata da *Income* e *Age*.
+
+- **Prime due componenti**: spiegano complessivamente circa il **76%** della varianza totale, un buon compromesso tra riduzione e mantenimento dell'informazione.
+
+
+***
+## 🔹 Grafici della PCA
+-   Si produca un grafico contenente la fedeltà della proiezione per numero di componenti e le osservazioni sulle prime due componenti;
+
+```{r}
+# Scree plot con fviz_eig
+fviz_eig(pca, addlabels = TRUE, ylim = c(0, 60))
+
+# Osservazioni sulle prime due componenti
+fviz_pca_ind(pca,
+             col.ind = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+## 💥 Risposta:
+
+**Scree plot**: mostra che la prima componente spiega circa il 57% della varianza, la seconda il 19%, e le successive contribuiscono in misura via via minore. Il "gomito" si individua a **2 componenti**, suggerendo che ridurre a 2 dimensioni è appropriato.
+
+**Grafico delle osservazioni sulle prime due componenti**: le osservazioni si distribuiscono lungo PC1 principalmente in base a *Total_spending* e *Total_purchases*, e lungo PC2 in base a *Income* e *Age*. Si notano alcuni outlier con valori estremi su PC1.
+
+
+***
+## 🔹 Cluster K-means sulle prime due componenti
+-   Rappresentare i cluster ottenuti tramite K-means sulle prime due componenti: emergono gruppi chiaramente separati?
+
+```{r}
+# K-means con K=2 (come scelto in precedenza)
+km <- kmeans(cluster_scaled, centers = 2, nstart = 25)
+
+# Visualizzazione dei cluster sulle prime due componenti
+fviz_cluster(km, data = cluster_scaled,
+             palette = c("#00AFBB", "#FC4E07"),
+             geom = "point",
+             ellipse.type = "convex",
+             ggtheme = theme_minimal(),
+             main = "K-means clusters sulle prime due componenti")
+```
+
+## 💥 Risposta:
+
+**Cluster K-means sulle prime due componenti**:
+
+I due cluster risultano **ben separati** lungo PC1, mentre su PC2 le differenze sono meno marcate. Questo conferma che la principale variabile discriminante è *Total_spending* e *Total_purchases*.
+
+
+***
+## PARTE H: Confronto tra algoritmi
+
+## 🔹 Confronto degli algoritmi
+-   Confrontare:
+
+    -   clustering gerarchico
+
+    -   K-means
+
+    -   PAM
+
+    -   DBSCAN
+
+    utilizzando silhouette, dimensione dei cluster, interpretabilità e sensibilità agli outlier.
+
+```{r}
+# Calcolo silhouette per Ward SUL SOTTOCAMPIONE (dove abbiamo i cluster)
+sil_ward <- silhouette(ward_clusters, dist_subset)
+mean(sil_ward[, 3])
+
+# Calcolo silhouette per K-means su TUTTI i dati
+sil_km <- silhouette(km$cluster, dist_euclidean)
+mean(sil_km[, 3])
+
+# Calcolo silhouette per PAM su TUTTI i dati
+sil_pam <- silhouette(pam_fit$clustering, dist_euclidean)
+mean(sil_pam[, 3])
+
+# Calcolo silhouette per DBSCAN su TUTTI i dati (solo punti non rumorosi)
+non_noise <- db$cluster != 0
+if (length(unique(db$cluster[non_noise])) > 1) {
+  sil_db <- silhouette(db$cluster[non_noise], dist(cluster_scaled[non_noise, ]))
+  mean(sil_db[, 3])
+} else {
+  sil_db <- NA
+}
+
+# Dimensioni dei cluster
+table(Ward = ward_clusters)          # su 100 osservazioni
+table(Kmeans = km$cluster)           # su 2216 osservazioni
+table(PAM = pam_fit$clustering)      # su 2216 osservazioni
+table(DBSCAN = db$cluster)           # su 2216 osservazioni
+
+# Creazione tabella comparativa (ATTENZIONE: Ward su campione!)
+comparison <- data.frame(
+  Metodo = c("Ward", "K-means", "PAM", "DBSCAN"),
+  Silhouette_media = c(
+    mean(sil_ward[, 3]),
+    mean(sil_km[, 3]),
+    mean(sil_pam[, 3]),
+    if (is.na(sil_db)) NA else mean(sil_db[, 3])
+  ),
+  Numero_cluster = c(
+    length(unique(ward_clusters)),
+    length(unique(km$cluster)),
+    length(unique(pam_fit$clustering)),
+    length(unique(db$cluster[db$cluster != 0]))
+  ),
+  Rilevazione_outlier = c("No", "No", "No", if (any(db$cluster == 0)) "Sì" else "No")
+)
+comparison
+```
+
+## 💥 Risposta
+
+| Metodo | Silhouette media | Numero cluster | Rilevazione outlier |
+|--------|------------------|----------------|---------------------|
+| Ward   | 0.35             | 2              | No                  |
+| K-means| 0.37             | 2              | No                  |
+| PAM    | 0.37             | 2              | No                  |
+| DBSCAN | 0.40             | 2 (+ rumore)   | Sì                  |
+
+**Analisi dettagliata**:
+
+- **Ward**: fornisce una struttura gerarchica utile per visualizzare le relazioni tra cluster. Non richiede di specificare K a priori. Svantaggio: non scalabile su grandi dataset.
+
+- **K-means**: semplice, veloce e scalabile. Svantaggio: sensibile agli outlier, richiede K, assume cluster sferici.
+
+- **PAM**: più robusto agli outlier (usa medoidi invece di medie). Svantaggio: meno scalabile di K-means su dataset grandi.
+
+- **DBSCAN**: non richiede K, individua outlier, gestisce cluster di forma arbitraria. Svantaggio: richiede scelta di eps e minPts.
+
+
+***
+## 🔹 Scelta dell'algoritmo più adatto
+-   Quale algoritmo sembra essere più adatto per questo dataset?
+
+## 💥 Risposta
+
+ **PAM** è il più adatto per questo dataset perché:  
+
+1. **Robusto agli outlier**: il dataset contiene outlier in *Income* e *Total_spending*. PAM usa medoidi, quindi è meno influenzato da valori estremi.  
+
+2. **Interpretabile**: i medoidi sono clienti reali, facilmente identificabili.  
+
+3. **Cluster bilanciati**: silhouette ≈ 0.37, buona separazione.  
+
+4. **Semplice**: richiede solo di scegliere K (che abbiamo determinato essere 2).  
+
