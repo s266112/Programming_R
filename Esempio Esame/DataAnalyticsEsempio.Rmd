@@ -4,9 +4,9 @@ subtitle: 1 ora e 30 minuti
 author: "Alessio Matessi - SM321657"
 date: "30 - 06 - 2026 "
 output: 
-  html_document: default
   pdf_document:
     latex_engine: xelatex
+  html_document: default
 ---
 
 Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. I file pdf e Rmd entrambi vanno consegnati tramite moodle.
@@ -77,7 +77,7 @@ La funzione `funzione(n, p)`:
 Punto 2. Fornire un'istruzione R che su un data frame che contiene un fattore $y$ con $k\ge 4$ modalità, selezioni solo le unità corrispondenti al secondo e quarto livello del fattore.
 Testare la funzione sul data frame contenuto nel file `testR2.RData`.
 
-### ✏️ Svolgimento
+## ✏️ Svolgimento
 
 ```{r}
 # Soluzione teorica 
@@ -95,87 +95,184 @@ levels(df_test$y)
 df_test[df_test$y %in% levels(df_test$y)[c(2, 4)], ]
 ```
 
-### 💥 Risposta:
+## 💥 Risposta:
 
 L'istruzione `df[df$y %in% levels(df$y)[c(2, 4)], ]` seleziona le righe corrispondenti al **secondo** e **quarto** livello del fattore `y`.
 
 Nel dataset fittizio con livelli `A, B, C, D, E`, la selezione mantiene solo le righe con `y = B` (secondo livello) e `y = D` (quarto livello).
 
 
-___
+---
 
-## Analisi dei dati
-
+###  Parte 2: Analisi dei dati
 
 Si considerino i dati contenuti nel file `fev.csv`. Si tratta di informazioni raccolte su 654 bambini e adolescenti. La variabile chiave è `FEV`, la capacità polmonare (in litri). Inoltre si dispone dell'età (`AGE`), della statura (`HEIGHT`, in pollici) e di due variabili dicotomiche, genere (`SEX`) e fumo (`SMOKE`).
 
-**1.** Quanto vale la devianza della variabile `HEIGHT`?
+🔹 **Punto 1**: Quanto vale la devianza della variabile `HEIGHT`?
 
+## ✏️ Svolgimento
 ```{r}
+# Carico il dataset
+fev <- read.csv("fev.csv", sep = ";")
+
+# Calcolo la devianza di HEIGHT
+dev_height <- sum((fev$height - mean(fev$height))^2)
+dev_height
 
 ```
+## 💥 Risposta:
+La devianza di `HEIGHT` è **16232.41**
 
 
-**2.** Si trasformino le variabili quantitative mediante standardizzazione e si calcoli la matrice di covarianza fra tali nuove variabili. Quale delle tre ha la covarianza più elevata?
+___
+🔹 **Punto 2**: Si trasformino le variabili quantitative mediante standardizzazione e si calcoli la matrice di covarianza fra tali nuove variabili. Quale delle tre ha la covarianza più elevata?
 
+## ✏️ Svolgimento
 ```{r}
+# Standardizzo le variabili qualitative
+fev_scaled <- scale(fev[, c("age", "fev", "height")])
+
+# Matrice di covarianza
+cov_matrix <- cov(fev_scaled)
+cov_matrix
 
 ```
+## 💥 Risposta:
+- Le variabili standardizzate hanno **media 0** e **varianza 1** (diagonale della matrice = 1)
+- La covarianza più elevata (in valore assoluto) è tra **height** e **fev**, pari a **0.853**
 
 
-**3.** Si calcoli la statistica $X^2$ per valutare l'associazione fra le variabili `SMOKE` e `SEX`. Quanto vale?
+___
+🔹 **Punto 3**: Si calcoli la statistica $X^2$ per valutare l'associazione fra le variabili `SMOKE` e `SEX`. Quanto vale?
 
+## ✏️ Svolgimento
 ```{r}
+# Tabella di contingenza SMOKE vs SEX
+tab <- table(fev$smoking, fev$gender)
+tab
+
+# Test chi-quadrato
+chisq.test(tab)
 
 ```
+## 💥 Risposta:
+La statistica χ² vale **3.6879** (p-value = 0.0548).Il p-value è leggermente superiore a 0.05, quindi non possiamo rifiutare l'ipotesi di indipendenza tra `SMOKE` e `SEX` al livello di significatività del 5%.
 
 
-**4.** Si vuole usare come misura di asimmetria l'indice $K$ definito come
+___
+🔹 **Punto 4**: Si vuole usare come misura di asimmetria l'indice $K$ definito come
 $$K = \frac{x_{0.9} + x_{0.1} - 2x_{0.5}}{x_{0.9} - x_{0.1}}$$
 per la variabile `FEV`. Quanto vale?
 
+## ✏️ Svolgimento
 ```{r}
+# Funzione per l'indice di assimetria K
+K <- function(x)
+{
+  q <- quantile(x, probs = c(0.1, 0.5, 0.9))
+  (q[3] + q[1] - 2*q[2]) / (q[3] - q[1])
+}
+
+# Applico a FEV
+K(fev$fev)
 
 ```
 
+## 💥 Risposta:
+L'indice di asimmetria K per la variabile `FEV` vale **0.171** (approssimato). Poiché K > 0, la distribuzione è **leggermente asimmetrica a destra**.
 
-**5.** A partire dalle variabili `SMOKE` e `SEX` si consideri la variabile che è il prodotto logico delle due (ovvero una variabile che ha 4 modalità: "M e Fumatore", "F e Fumatore", "M e Non Fumatore", "F e Non Fumatore"). Per quale gruppo identificato da questa nuova variabile risulta la mediana di `FEV` più piccola?
+___
+🔹 **Punto 5**: A partire dalle variabili `SMOKE` e `SEX` si consideri la variabile che è il prodotto logico delle due (ovvero una variabile che ha 4 modalità: "M e Fumatore", "F e Fumatore", "M e Non Fumatore", "F e Non Fumatore"). Per quale gruppo identificato da questa nuova variabile risulta la mediana di `FEV` più piccola?
+
+## ✏️ Svolgimento
+```{r}
+# Creo la variabile combinata SMOKE e SEX
+fev$gruppo <- interaction(fev$gender, fev$smoking)
+levels(fev$gruppo) <- c("F_NO", "M_NO", "F_Smoke", "M_smoke")
+
+# Mediana di FEV per gruppo
+tapply(fev$fev, fev$gruppo, median)
+
+```
+
+## 💥 Risposta:
+Il gruppo con la mediana di `FEV` più piccola è **F_No** (femmine non fumatrici), con mediana ≈ **2.463**.
+
+___
+🔹 **Punto 6**: Si determinino i parametri della funzione di regressione multipla che ha come variabile risposta `FEV` e come variabili esplicative `AGE` e `SMOKE`.
+
+## ✏️ Svolgimento
+```{r}
+# Modello di regressione multipla
+mod <- lm(fev ~ age + smoking, data = fev)
+summary(mod)
+
+```
+## 💥 Risposta:
+Il modello di regressione multipla stimato è:
+
+`FEV = 0.204 + 0.248 * AGE - 0.236 * SMOKE`
+
+- Per ogni anno in più di età, la capacità polmonare aumenta in media di **0.248 litri** (p-value < 0.001).
+- A parità di età, i fumatori hanno in media una capacità polmonare inferiore di **0.236 litri** rispetto ai non fumatori (p-value = 0.0048).
+- R² = **0.5367**, quindi il modello spiega circa il **53.7%** della variabilità di `FEV`.
+- Il modello è complessivamente significativo (p-value < 0.001).
+
+
+### Parte 3: Rispondi alle seguenti domande:
+
+- **6.1** La devianza spiegata dalla regressione vale circa:
 
 ```{r}
+# Devianza spiegata dalla regressione
+dev_spiegata <- sum((fitted(mod) - mean(fev$fev))^2)
+dev_spiegata
 
 ```
+## 💥 Risposta:
+La devianza spiegata dalla regressione è **223.424**
+
+___
+- **6.2** Quale tra le seguenti affermazioni è accettabile:
+
+  a. `[✅ ]` a parità di età la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
+  b. `[ ❌ ]` la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
+  c. `[❌ ]`  a parità di età la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
+  d. `[❌ ]` la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
+
+## 💥 Risposta:
+**a.** ✅ *a parità di età la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri*
 
 
-**6.** Si determinino i parametri della funzione di regressione multipla che ha come variabile risposta `FEV` e come variabili esplicative `AGE` e `SMOKE`.
+___
+- **6.3** Quale delle seguenti affermazioni non è supportata dalle analisi. La variabile `AGE`:
 
-```{r lm}
+  a. `[✅  ]` è molto rilevante per spiegare la capacità polmonare
+  b. `[❌ ]` all'aumentare dell'età la capacità polmonare aumenta in media del 23% 
+  c. `[ ✅ ]` all'aumentare dell'età di 1 anno la capacità polmonare aumenta in media di 0.23 litri
+  d. `[✅  ]` per un soggetto di 10 anni e fumatore, la capacità polmonare prevista è di circa 2.46 litri
+  
+## 💥 Risposta:
 
-```
+**b.** ❌ *"all'aumentare dell'età la capacità polmonare aumenta in media del 23%"* → **non supportata**. 
 
-**6.1** La devianza spiegata dalla regressione vale circa:
+Il coefficiente di `age` è 0.248 **litri**, non una percentuale. L'affermazione corretta sarebbe: *"all'aumentare dell'età di 1 anno, la capacità polmonare aumenta in media di 0.248 litri"*.
+
+
+___
+- **6.4** Qual è la percentuale di devianza dei residui della funzione di regressione?
 
 ```{r}
+# Devianza residua
+dev_res <- sum(residuals(mod)^2)
+
+# Devianza totale
+dev_tot <- sum((fev$fev - mean(fev$fev))^2)
+
+# Percentuale devianza residui
+dev_res / dev_tot * 100
 
 ```
 
-
-**6.2** Quale tra le seguenti affermazioni è accettabile:
-
-  a. `[ ]` a parità di età la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
-  b. `[ ]` la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
-  c. `[ ]`  a parità di età la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
-  d. `[ ]` la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
-
-**6.3** Quale delle seguenti affermazioni non è supportata dalle analisi. La variabile `AGE`:
-
-  a. `[ ]` è molto rilevante per spiegare la capacità polmonare
-  b. `[ ]` all'aumentare dell'età la capacità polmonare aumenta in media del 23% 
-  c. `[ ]` all'aumentare dell'età di 1 anno la capacità polmonare aumenta in media di 0.23 litri
-  d. `[ ]` per un soggetto di 10 anni e fumatore, la capacità polmonare prevista è di circa 2.46 litri
-
-**6.4** Qual è la percentuale di devianza dei residui della funzione di regressione?
-
-```{r}
-
-```
-
+## 💥 Risposta:
+La percentuale di devianza dei residui è circa **46.33%**.

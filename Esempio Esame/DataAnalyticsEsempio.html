@@ -418,24 +418,24 @@ colonne e la matrice di correlazione delle colonne. Chiamare la funzione
 # Test
 funzione(5, 3)</code></pre>
 <pre><code>## $matrice
-##            [,1]       [,2]       [,3]
-## [1,]  0.8113239 -2.1793140  0.4358695
-## [2,] -0.8451807  0.6238525 -1.4578560
-## [3,]  0.4950113 -1.2551299 -0.3283588
-## [4,]  0.8398241 -0.2893169 -0.4025379
-## [5,]  1.2576548  0.5266702 -0.7240311
+##            [,1]       [,2]        [,3]
+## [1,] -1.1648153 -0.2655841 -0.64310089
+## [2,] -1.9893638 -0.7370724 -0.82970148
+## [3,] -0.2788084 -0.4605819 -0.07348951
+## [4,]  0.3535948 -0.9920235  0.11510608
+## [5,] -1.9961567  1.1609730  2.10193500
 ## 
 ## $medie
-## [1]  0.5117267 -0.5146476 -0.4953829
+## [1] -1.0151099 -0.2588578  0.1341498
 ## 
 ## $varianze
-## [1] 0.6488231 1.4376818 0.4705957
+## [1] 1.0873819 0.7057196 1.3621958
 ## 
 ## $correlazione
 ##            [,1]       [,2]       [,3]
-## [1,]  1.0000000 -0.3055738  0.6524528
-## [2,] -0.3055738  1.0000000 -0.9078175
-## [3,]  0.6524528 -0.9078175  1.0000000</code></pre>
+## [1,]  1.0000000 -0.5930404 -0.2165152
+## [2,] -0.5930404  1.0000000  0.8454909
+## [3,] -0.2165152  0.8454909  1.0000000</code></pre>
 </div>
 <div id="risposta" class="section level2">
 <h2>💥 Risposta:</h2>
@@ -455,8 +455,9 @@ fattore <span class="math inline">\(y\)</span> con <span class="math inline">\(k
 corrispondenti al secondo e quarto livello del fattore. Testare la
 funzione sul data frame contenuto nel file
 <code>testR2.RData</code>.</p>
-<div id="svolgimento-1" class="section level3">
-<h3>✏️ Svolgimento</h3>
+</div>
+<div id="svolgimento-1" class="section level2">
+<h2>✏️ Svolgimento</h2>
 <pre class="r"><code># Soluzione teorica 
 # df[df$y %in% levels(df$y)[c(2, 4)], ]
 
@@ -477,8 +478,8 @@ levels(df_test$y)</code></pre>
 ## 7  7 D  0.46091621
 ## 8  8 D -1.26506123</code></pre>
 </div>
-<div id="risposta-1" class="section level3">
-<h3>💥 Risposta:</h3>
+<div id="risposta-1" class="section level2">
+<h2>💥 Risposta:</h2>
 <p>L’istruzione <code>df[df$y %in% levels(df$y)[c(2, 4)], ]</code>
 seleziona le righe corrispondenti al <strong>secondo</strong> e
 <strong>quarto</strong> livello del fattore <code>y</code>.</p>
@@ -486,63 +487,261 @@ seleziona le righe corrispondenti al <strong>secondo</strong> e
 selezione mantiene solo le righe con <code>y = B</code> (secondo
 livello) e <code>y = D</code> (quarto livello).</p>
 <hr />
-</div>
-</div>
-<div id="analisi-dei-dati" class="section level2">
-<h2>Analisi dei dati</h2>
+<div id="parte-2-analisi-dei-dati" class="section level3">
+<h3>Parte 2: Analisi dei dati</h3>
 <p>Si considerino i dati contenuti nel file <code>fev.csv</code>. Si
 tratta di informazioni raccolte su 654 bambini e adolescenti. La
 variabile chiave è <code>FEV</code>, la capacità polmonare (in litri).
 Inoltre si dispone dell’età (<code>AGE</code>), della statura
 (<code>HEIGHT</code>, in pollici) e di due variabili dicotomiche, genere
 (<code>SEX</code>) e fumo (<code>SMOKE</code>).</p>
-<p><strong>1.</strong> Quanto vale la devianza della variabile
+<p>🔹 <strong>Punto 1</strong>: Quanto vale la devianza della variabile
 <code>HEIGHT</code>?</p>
-<p><strong>2.</strong> Si trasformino le variabili quantitative mediante
-standardizzazione e si calcoli la matrice di covarianza fra tali nuove
-variabili. Quale delle tre ha la covarianza più elevata?</p>
-<p><strong>3.</strong> Si calcoli la statistica <span class="math inline">\(X^2\)</span> per valutare l’associazione fra le
+</div>
+</div>
+<div id="svolgimento-2" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Carico il dataset
+fev &lt;- read.csv(&quot;fev.csv&quot;, sep = &quot;;&quot;)
+
+# Calcolo la devianza di HEIGHT
+dev_height &lt;- sum((fev$height - mean(fev$height))^2)
+dev_height</code></pre>
+<pre><code>## [1] 16232.41</code></pre>
+</div>
+<div id="risposta-2" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>La devianza di <code>HEIGHT</code> è <strong>16232.41</strong></p>
+<hr />
+<p>🔹 <strong>Punto 2</strong>: Si trasformino le variabili quantitative
+mediante standardizzazione e si calcoli la matrice di covarianza fra
+tali nuove variabili. Quale delle tre ha la covarianza più elevata?</p>
+</div>
+<div id="svolgimento-3" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Standardizzo le variabili qualitative
+fev_scaled &lt;- scale(fev[, c(&quot;age&quot;, &quot;fev&quot;, &quot;height&quot;)])
+
+# Matrice di covarianza
+cov_matrix &lt;- cov(fev_scaled)
+cov_matrix</code></pre>
+<pre><code>##              age       fev    height
+## age    1.0000000 0.7283901 0.7579478
+## fev    0.7283901 1.0000000 0.8534572
+## height 0.7579478 0.8534572 1.0000000</code></pre>
+</div>
+<div id="risposta-3" class="section level2">
+<h2>💥 Risposta:</h2>
+<ul>
+<li>Le variabili standardizzate hanno <strong>media 0</strong> e
+<strong>varianza 1</strong> (diagonale della matrice = 1)</li>
+<li>La covarianza più elevata (in valore assoluto) è tra
+<strong>height</strong> e <strong>fev</strong>, pari a
+<strong>0.853</strong></li>
+</ul>
+<hr />
+<p>🔹 <strong>Punto 3</strong>: Si calcoli la statistica <span class="math inline">\(X^2\)</span> per valutare l’associazione fra le
 variabili <code>SMOKE</code> e <code>SEX</code>. Quanto vale?</p>
-<p><strong>4.</strong> Si vuole usare come misura di asimmetria l’indice
-<span class="math inline">\(K\)</span> definito come <span class="math display">\[K = \frac{x_{0.9} + x_{0.1} - 2x_{0.5}}{x_{0.9} -
+</div>
+<div id="svolgimento-4" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Tabella di contingenza SMOKE vs SEX
+tab &lt;- table(fev$smoking, fev$gender)
+tab</code></pre>
+<pre><code>##    
+##       f   m
+##   0 255 290
+##   1  37  24</code></pre>
+<pre class="r"><code># Test chi-quadrato
+chisq.test(tab)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+## 
+## data:  tab
+## X-squared = 3.6879, df = 1, p-value = 0.05481</code></pre>
+</div>
+<div id="risposta-4" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>La statistica χ² vale <strong>3.6879</strong> (p-value = 0.0548).Il
+p-value è leggermente superiore a 0.05, quindi non possiamo rifiutare
+l’ipotesi di indipendenza tra <code>SMOKE</code> e <code>SEX</code> al
+livello di significatività del 5%.</p>
+<hr />
+<p>🔹 <strong>Punto 4</strong>: Si vuole usare come misura di asimmetria
+l’indice <span class="math inline">\(K\)</span> definito come <span class="math display">\[K = \frac{x_{0.9} + x_{0.1} - 2x_{0.5}}{x_{0.9} -
 x_{0.1}}\]</span> per la variabile <code>FEV</code>. Quanto vale?</p>
-<p><strong>5.</strong> A partire dalle variabili <code>SMOKE</code> e
-<code>SEX</code> si consideri la variabile che è il prodotto logico
-delle due (ovvero una variabile che ha 4 modalità: “M e Fumatore”, “F e
-Fumatore”, “M e Non Fumatore”, “F e Non Fumatore”). Per quale gruppo
-identificato da questa nuova variabile risulta la mediana di
-<code>FEV</code> più piccola?</p>
-<p><strong>6.</strong> Si determinino i parametri della funzione di
-regressione multipla che ha come variabile risposta <code>FEV</code> e
-come variabili esplicative <code>AGE</code> e <code>SMOKE</code>.</p>
-<p><strong>6.1</strong> La devianza spiegata dalla regressione vale
-circa:</p>
-<p><strong>6.2</strong> Quale tra le seguenti affermazioni è
+</div>
+<div id="svolgimento-5" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Funzione per l&#39;indice di assimetria K
+K &lt;- function(x)
+{
+  q &lt;- quantile(x, probs = c(0.1, 0.5, 0.9))
+  (q[3] + q[1] - 2*q[2]) / (q[3] - q[1])
+}
+
+# Applico a FEV
+K(fev$fev)</code></pre>
+<pre><code>##       90% 
+## 0.1708578</code></pre>
+</div>
+<div id="risposta-5" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>L’indice di asimmetria K per la variabile <code>FEV</code> vale
+<strong>0.171</strong> (approssimato). Poiché K &gt; 0, la distribuzione
+è <strong>leggermente asimmetrica a destra</strong>.</p>
+<hr />
+<p>🔹 <strong>Punto 5</strong>: A partire dalle variabili
+<code>SMOKE</code> e <code>SEX</code> si consideri la variabile che è il
+prodotto logico delle due (ovvero una variabile che ha 4 modalità: “M e
+Fumatore”, “F e Fumatore”, “M e Non Fumatore”, “F e Non Fumatore”). Per
+quale gruppo identificato da questa nuova variabile risulta la mediana
+di <code>FEV</code> più piccola?</p>
+</div>
+<div id="svolgimento-6" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Creo la variabile combinata SMOKE e SEX
+fev$gruppo &lt;- interaction(fev$gender, fev$smoking)
+levels(fev$gruppo) &lt;- c(&quot;F_NO&quot;, &quot;M_NO&quot;, &quot;F_Smoke&quot;, &quot;M_smoke&quot;)
+
+# Mediana di FEV per gruppo
+tapply(fev$fev, fev$gruppo, median)</code></pre>
+<pre><code>##    F_NO    M_NO F_Smoke M_smoke 
+##   2.463   2.598   3.069   3.775</code></pre>
+</div>
+<div id="risposta-6" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>Il gruppo con la mediana di <code>FEV</code> più piccola è
+<strong>F_No</strong> (femmine non fumatrici), con mediana ≈
+<strong>2.463</strong>.</p>
+<hr />
+<p>🔹 <strong>Punto 6</strong>: Si determinino i parametri della
+funzione di regressione multipla che ha come variabile risposta
+<code>FEV</code> e come variabili esplicative <code>AGE</code> e
+<code>SMOKE</code>.</p>
+</div>
+<div id="svolgimento-7" class="section level2">
+<h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Modello di regressione multipla
+mod &lt;- lm(fev ~ age + smoking, data = fev)
+summary(mod)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = fev ~ age + smoking, data = fev)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.48912 -0.35667 -0.04028  0.34263  2.04484 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.204008   0.099401   2.052  0.04057 *  
+## age          0.247930   0.009833  25.213  &lt; 2e-16 ***
+## smoking     -0.235833   0.083327  -2.830  0.00481 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.5655 on 603 degrees of freedom
+## Multiple R-squared:  0.5367, Adjusted R-squared:  0.5352 
+## F-statistic: 349.3 on 2 and 603 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="risposta-7" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>Il modello di regressione multipla stimato è:</p>
+<p><code>FEV = 0.204 + 0.248 * AGE - 0.236 * SMOKE</code></p>
+<ul>
+<li>Per ogni anno in più di età, la capacità polmonare aumenta in media
+di <strong>0.248 litri</strong> (p-value &lt; 0.001).</li>
+<li>A parità di età, i fumatori hanno in media una capacità polmonare
+inferiore di <strong>0.236 litri</strong> rispetto ai non fumatori
+(p-value = 0.0048).</li>
+<li>R² = <strong>0.5367</strong>, quindi il modello spiega circa il
+<strong>53.7%</strong> della variabilità di <code>FEV</code>.</li>
+<li>Il modello è complessivamente significativo (p-value &lt;
+0.001).</li>
+</ul>
+<div id="parte-3-rispondi-alle-seguenti-domande" class="section level3">
+<h3>Parte 3: Rispondi alle seguenti domande:</h3>
+<ul>
+<li><strong>6.1</strong> La devianza spiegata dalla regressione vale
+circa:</li>
+</ul>
+<pre class="r"><code># Devianza spiegata dalla regressione
+dev_spiegata &lt;- sum((fitted(mod) - mean(fev$fev))^2)
+dev_spiegata</code></pre>
+<pre><code>## [1] 223.424</code></pre>
+</div>
+</div>
+<div id="risposta-8" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>La devianza spiegata dalla regressione è <strong>223.424</strong></p>
+<hr />
+<ul>
+<li><p><strong>6.2</strong> Quale tra le seguenti affermazioni è
 accettabile:</p>
 <ol style="list-style-type: lower-alpha">
-<li><code>[ ]</code> a parità di età la capacità polmonare dei fumatori
-è inferiore in media a quella dei non fumatori di circa 0.21 litri</li>
-<li><code>[ ]</code> la capacità polmonare dei fumatori è inferiore in
+<li><code>[✅ ]</code> a parità di età la capacità polmonare dei
+fumatori è inferiore in media a quella dei non fumatori di circa 0.21
+litri</li>
+<li><code>[ ❌ ]</code> la capacità polmonare dei fumatori è inferiore
+in media a quella dei non fumatori di circa 0.21 litri</li>
+<li><code>[❌ ]</code> a parità di età la capacità polmonare dei
+fumatori è superiore in media a quella dei non fumatori di circa 0.21
+litri</li>
+<li><code>[❌ ]</code> la capacità polmonare dei fumatori è superiore in
 media a quella dei non fumatori di circa 0.21 litri</li>
-<li><code>[ ]</code> a parità di età la capacità polmonare dei fumatori
-è superiore in media a quella dei non fumatori di circa 0.21 litri</li>
-<li><code>[ ]</code> la capacità polmonare dei fumatori è superiore in
-media a quella dei non fumatori di circa 0.21 litri</li>
-</ol>
-<p><strong>6.3</strong> Quale delle seguenti affermazioni non è
+</ol></li>
+</ul>
+</div>
+<div id="risposta-9" class="section level2">
+<h2>💥 Risposta:</h2>
+<p><strong>a.</strong> ✅ <em>a parità di età la capacità polmonare dei
+fumatori è inferiore in media a quella dei non fumatori di circa 0.21
+litri</em></p>
+<hr />
+<ul>
+<li><p><strong>6.3</strong> Quale delle seguenti affermazioni non è
 supportata dalle analisi. La variabile <code>AGE</code>:</p>
 <ol style="list-style-type: lower-alpha">
-<li><code>[ ]</code> è molto rilevante per spiegare la capacità
+<li><code>[✅  ]</code> è molto rilevante per spiegare la capacità
 polmonare</li>
-<li><code>[ ]</code> all’aumentare dell’età la capacità polmonare
+<li><code>[❌ ]</code> all’aumentare dell’età la capacità polmonare
 aumenta in media del 23%</li>
-<li><code>[ ]</code> all’aumentare dell’età di 1 anno la capacità
+<li><code>[ ✅ ]</code> all’aumentare dell’età di 1 anno la capacità
 polmonare aumenta in media di 0.23 litri</li>
-<li><code>[ ]</code> per un soggetto di 10 anni e fumatore, la capacità
-polmonare prevista è di circa 2.46 litri</li>
-</ol>
-<p><strong>6.4</strong> Qual è la percentuale di devianza dei residui
-della funzione di regressione?</p>
+<li><code>[✅  ]</code> per un soggetto di 10 anni e fumatore, la
+capacità polmonare prevista è di circa 2.46 litri</li>
+</ol></li>
+</ul>
+</div>
+<div id="risposta-10" class="section level2">
+<h2>💥 Risposta:</h2>
+<p><strong>b.</strong> ❌ <em>“all’aumentare dell’età la capacità
+polmonare aumenta in media del 23%”</em> → <strong>non
+supportata</strong>.</p>
+<p>Il coefficiente di <code>age</code> è 0.248 <strong>litri</strong>,
+non una percentuale. L’affermazione corretta sarebbe: <em>“all’aumentare
+dell’età di 1 anno, la capacità polmonare aumenta in media di 0.248
+litri”</em>.</p>
+<hr />
+<ul>
+<li><strong>6.4</strong> Qual è la percentuale di devianza dei residui
+della funzione di regressione?</li>
+</ul>
+<pre class="r"><code># Devianza residua
+dev_res &lt;- sum(residuals(mod)^2)
+
+# Devianza totale
+dev_tot &lt;- sum((fev$fev - mean(fev$fev))^2)
+
+# Percentuale devianza residui
+dev_res / dev_tot * 100</code></pre>
+<pre><code>## [1] 46.32937</code></pre>
+</div>
+<div id="risposta-11" class="section level2">
+<h2>💥 Risposta:</h2>
+<p>La percentuale di devianza dei residui è circa
+<strong>46.33%</strong>.</p>
 </div>
 
 
