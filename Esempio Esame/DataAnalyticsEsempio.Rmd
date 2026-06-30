@@ -1,0 +1,181 @@
+---
+title: "Data Analytics - Esempio esame"
+subtitle: 1 ora e 30 minuti
+author: "Alessio Matessi - SM321657"
+date: "30 - 06 - 2026 "
+output: 
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex
+---
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. I file pdf e Rmd entrambi vanno consegnati tramite moodle.
+
+  1. Accertarsi che il file compili correttamente prima di iniziare l'esame
+  2. Compilare spesso
+  3. Se non si riesce a risolvere l'errore di compilazione, utilizzare l'opzione `eval = F` nelle opzioni del chunk, ad esempio:
+
+```{r, eval = FALSE}
+
+```
+
+
+### PARTE 1:  R
+
+Punto 1. Scrivere una funzione che prenda in input due scalari numerici interi diciamo $n>1$ e $p>0$.
+La funzione, dopo avere controllato che i due argomenti rispettino le condizioni date, creerà una matrice che abbia $n$ righe e $p$ colonne popolata da numeri generati casualmente da una variabile gaussiana di media 0 e varianza 1. La funzione restituirà una lista contenente la matrice suddetta, il vettore delle medie delle colonne, il vettore delle varianze delle colonne e la matrice di correlazione delle colonne. Chiamare la funzione `funzione`.
+
+
+## ✏️ Svolgimento
+```{r}
+funzione <- function(n, p) 
+{
+  # Controllo input
+  if (
+    !is.numeric(n) || 
+    !is.numeric(p) || 
+    n <= 1 || 
+    p <= 0 || 
+    n != round(n) || 
+    p != round(p))
+  {
+    stop ("n deve essere un intero > 1, p un intero > 0")
+  }
+  
+  # Creo la matrice
+  mat <- matrix(rnorm(n * p), nrow = n, ncol = p)
+  
+  # Calcolo medie, varianze, correlazione
+  col_means <- apply(mat, 2, mean)
+  col_vars <- apply(mat, 2, var)
+  col_cor <- cor(mat)
+  
+  # Restituisco la lista
+  return(list(
+    matrice = mat,
+    medie = col_means,
+    varianze = col_vars,
+    correlazione = col_cor
+  ))
+}
+
+# Test
+funzione(5, 3)
+
+```
+
+## 💥 Risposta:
+La funzione `funzione(n, p)`:
+
+- Controlla che `n > 1` e `p > 0` e che siano interi
+- Genera una matrice `n x p` con valori da *N(0,1)*
+- Restituisce una lista con: **matrice**, **medie** delle colonne, **varianze** delle colonne, **matrice di correlazione** 
+
+
+---
+
+Punto 2. Fornire un'istruzione R che su un data frame che contiene un fattore $y$ con $k\ge 4$ modalità, selezioni solo le unità corrispondenti al secondo e quarto livello del fattore.
+Testare la funzione sul data frame contenuto nel file `testR2.RData`.
+
+### ✏️ Svolgimento
+
+```{r}
+# Soluzione teorica 
+# df[df$y %in% levels(df$y)[c(2, 4)], ]
+
+# Test su un dataset fittizio (per dimostrare che la logica funziona)
+set.seed(123)
+df_test <- data.frame(
+  id = 1:10,
+  y = factor(rep(c("A", "B", "C", "D", "E"), each = 2)),
+  valore = rnorm(10)
+)
+
+levels(df_test$y)
+df_test[df_test$y %in% levels(df_test$y)[c(2, 4)], ]
+```
+
+### 💥 Risposta:
+
+L'istruzione `df[df$y %in% levels(df$y)[c(2, 4)], ]` seleziona le righe corrispondenti al **secondo** e **quarto** livello del fattore `y`.
+
+Nel dataset fittizio con livelli `A, B, C, D, E`, la selezione mantiene solo le righe con `y = B` (secondo livello) e `y = D` (quarto livello).
+
+
+___
+
+## Analisi dei dati
+
+
+Si considerino i dati contenuti nel file `fev.csv`. Si tratta di informazioni raccolte su 654 bambini e adolescenti. La variabile chiave è `FEV`, la capacità polmonare (in litri). Inoltre si dispone dell'età (`AGE`), della statura (`HEIGHT`, in pollici) e di due variabili dicotomiche, genere (`SEX`) e fumo (`SMOKE`).
+
+**1.** Quanto vale la devianza della variabile `HEIGHT`?
+
+```{r}
+
+```
+
+
+**2.** Si trasformino le variabili quantitative mediante standardizzazione e si calcoli la matrice di covarianza fra tali nuove variabili. Quale delle tre ha la covarianza più elevata?
+
+```{r}
+
+```
+
+
+**3.** Si calcoli la statistica $X^2$ per valutare l'associazione fra le variabili `SMOKE` e `SEX`. Quanto vale?
+
+```{r}
+
+```
+
+
+**4.** Si vuole usare come misura di asimmetria l'indice $K$ definito come
+$$K = \frac{x_{0.9} + x_{0.1} - 2x_{0.5}}{x_{0.9} - x_{0.1}}$$
+per la variabile `FEV`. Quanto vale?
+
+```{r}
+
+```
+
+
+**5.** A partire dalle variabili `SMOKE` e `SEX` si consideri la variabile che è il prodotto logico delle due (ovvero una variabile che ha 4 modalità: "M e Fumatore", "F e Fumatore", "M e Non Fumatore", "F e Non Fumatore"). Per quale gruppo identificato da questa nuova variabile risulta la mediana di `FEV` più piccola?
+
+```{r}
+
+```
+
+
+**6.** Si determinino i parametri della funzione di regressione multipla che ha come variabile risposta `FEV` e come variabili esplicative `AGE` e `SMOKE`.
+
+```{r lm}
+
+```
+
+**6.1** La devianza spiegata dalla regressione vale circa:
+
+```{r}
+
+```
+
+
+**6.2** Quale tra le seguenti affermazioni è accettabile:
+
+  a. `[ ]` a parità di età la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
+  b. `[ ]` la capacità polmonare dei fumatori è inferiore in media a quella dei non fumatori di circa 0.21 litri
+  c. `[ ]`  a parità di età la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
+  d. `[ ]` la capacità polmonare dei fumatori è superiore in media a quella dei non fumatori di circa 0.21 litri
+
+**6.3** Quale delle seguenti affermazioni non è supportata dalle analisi. La variabile `AGE`:
+
+  a. `[ ]` è molto rilevante per spiegare la capacità polmonare
+  b. `[ ]` all'aumentare dell'età la capacità polmonare aumenta in media del 23% 
+  c. `[ ]` all'aumentare dell'età di 1 anno la capacità polmonare aumenta in media di 0.23 litri
+  d. `[ ]` per un soggetto di 10 anni e fumatore, la capacità polmonare prevista è di circa 2.46 litri
+
+**6.4** Qual è la percentuale di devianza dei residui della funzione di regressione?
+
+```{r}
+
+```
+
