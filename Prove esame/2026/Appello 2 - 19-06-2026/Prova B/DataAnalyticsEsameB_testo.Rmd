@@ -1,0 +1,146 @@
+---
+title: "Data Analytics - Esame - Compito B"
+subtitle: '19/06/2026  - Tempo a disposizione 2 ore'
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+geometry: margin=2cm
+fontsize: 11pt
+---
+
+**Nome e cognome:**  $\quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad$ **N. mat.:** 
+
+---
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
+
+  1. Accertarsi che il file compili correttamente prima di iniziare l'esame
+  2. Compilare spesso
+  3. Se non si riesce a risolvere l'errore di compilazione, utilizzare `eval = F` nel chunk (si veda l'esempio dove è stata inclusa la tilde per vostra convenienza)
+  
+  ```{r, eval = FALSE}
+     ~
+  ```
+---
+
+
+
+Si considerino i dati contenuti nel file `datiB.csv`. Il dataset contiene informazioni relative a diverse città del mondo e comprende le seguenti variabili:
+
+- `City`:  Nome della città;
+- `Continent`: Continente;
+- `Month`: Mese di registrazione dati;
+- `Year`: Anno di registrazione dati;
+- `Decibel_Level`: Livello medio di rumore (dB);
+- `Traffic_Density`: Densità del traffico (Low, Medium, High, Very High);
+- `Green_Space_Area`:  Percentuale di spazi verdi nella città;
+- `Air_Quality_Index`:  Indice che misura la qualità dell'aria;
+- `Happiness_Score`:  Punteggio medio di felicità della città (su una scala da 1 a 10);
+- `Cost_of_Living_Index`: Indice che misura il costo della vita nella città (rispetto a una città di riferimento);
+- `Healthcare_Index`: Indice che misura la qualità dell'assistenza sanitaria nella città.
+
+I valori mancanti sono codificati come ?. 
+
+## ANALISI DEI DATI 
+
+**1. [2]** Si mostri quanti valori mancanti sono presenti per ogni variabile. Quindi, dopo aver rimosso le osservazioni contenenti almeno un valore mancante, si crei un dataframe di lavoro selezionando le osservazioni relative all'anno 2024. Si mostri la struttura e la dimensione del dataset ottenuto.
+
+```{r}
+
+```
+
+**2. [3]** Si costruisca una nuova variabile `Noise_Level`, ottenuta discretizzando la variabile `Decibel_Level` con la seguente regola: "Low" per [50, 62.5), "Medium" per  [62.5, 75), "High" per [75, 87.5), "Very High": [87.5, 100]. Si riportino quindi la distribuzione di frequenza assoluta e relativa della variabile `Noise_Level`. Si ottenga l'istogramma della variabile `Noise_Level` con la stessa suddivisione in classi. 
+```{r}
+
+```
+
+**3. [5]** Si aggiunga al dataframe la variabile `Traffic`, ottenuta da `Traffic_Density` accorpando le modalità "High" e "Very High". La nuova variabile deve rispettare l'ordinamento crescente delle classi ("Low"< "Medium" < "High"). Si valuti graficamente se le distribuzioni della variabile `Noise_Level` condizionate ai livelli di `Traffic` risultano differenti. Successivamente si valuti con un indice normalizzato l'eventuale associazione tra le due variabili. Il risultato numerico conferma l'intuizione derivata dall'osservazione del grafico?
+
+```{r}
+
+```
+
+**4. [3]** Si considerino le variabili quantitative `Happiness_score` and `Air_Quality_Index` per la modalità `Oceania` della variabile `Continent` e `High` della variabile `Noise_level`. Stampare le mediane delle variabili numeriche per le osservazioni selezionate.
+
+```{r}
+
+```
+
+
+**5. [4]** Si rappresentino graficamente le distribuzioni di `Happiness_Score` condizionate ai livelli di `Continent`. Cosa emerge dall'analisi del grafico? Escludendo le categorie `South America`, `Africa` e `Asia`, quale delle seguenti affermazioni è VERA?
+
+  a. `[ ]` Vi è ancora una chiara evidenza di differenza tra le medie di `Happiness_Score` per continente.
+  b. `[ ]` Il valore della devianza within è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+  c. `[ ]` Ci aspettiamo una riduzione del valore dell'$\eta^2$.
+  d. `[ ]` Il valore della devianza between è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+
+```{r}
+
+```
+
+**6. [1]** Si adatti un modello di regressione lineare semplice avente come variabile risposta `Happiness_Score` e come variabili esplicative `Air_Quality_Index` e si stampi l'output del modello.
+
+
+```{r}
+
+```
+
+
+**6.1 [1]** Si calcoli il coefficiente della variabile `Air_Quality_Index` a mano e si verifichi che esso corrisponde a quello ottenuto dall'output del modello.
+
+```{r}
+
+```
+
+**6.2 [2]** Ottenere il grafico dei residui vs valori stimati e stampare le città con residuo minore di -2.
+
+```{r}
+
+```
+
+**6.3 [1]** Si ottenga il grafico della retta di regressione del modello sovrapposta allo scatterplot dei punti osservati e si colori i punti in accordo alle categorie della variabile `Noise_Level`.
+
+```{r}
+
+```
+
+
+**6.4 [3]** Si ottenga il modello di regressione lineare avente come variabile risposta `Happiness_Score` e come variabili esplicative `Air_Quality_Index` e `Air_Quality_Index` al quadrato. Selezionare quale delle seguenti affermazioni è VERA.
+
+  a. `[ ]` L'incremento del coefficiente di determinazione rispetto al modello al punto 6 è superiore ad un punto percentuale. 
+  b. `[ ]` L'effetto di un incremento unitario di `Air_Quality_Index` su `Happiness_Score` è di circa -0.03.
+  c. `[ ]` Il valore predetto di `Happiness_Score` quando `Air_Quality_Index` è 5 è 8.23.
+  d. `[ ]` I residui sono simmetrici 
+
+```{r}
+
+```
+
+
+
+**7. [4] ** Si applichi un algoritmo di cluster analysis gerarchico con il metodo di Ward che consideri le seguenti variabili: `Green_Space_Area`, `Air_Quality_Index`, `Noise_Level`, `Traffic`. Si selezionino due gruppi e si scelga la risposta FALSA tra le seguenti.
+
+  a. `[ ]` Uno dei gruppi è caratterizzato principalmente da paesi in Oceania ed Europa.
+  b. `[ ]` Rispetto alla variabile `Traffic`, le città con traffico alto non si trovano in un unico gruppo.
+  c. `[ ]` Le città con un livello di `Noise_level` basso sono quasi tutte concentrate in un unico cluster.
+  d. `[ ]` Le medie condizionate della variabile `Happiness_Score` rispetto ai due gruppi sono di 4.97 e 7.51.
+
+```{r}
+
+```
+
+## R
+
+**8. [4]** Scrivere una funzione chiamata `funzione` che prenda in input un vettore numerico `x` e una variabile di tipo character `y` e che svolga i seguenti passaggi:
+
+a. Controlli che il tipo di `x` sia numeric e quello di `y` sia character, e in tal caso stampi il messaggio `"OK: il vettore x è di tipo numeric, mentre y è di tipo character"`;
+b. Calcoli il 25-esimo percentile di `x` e lo utilizzi per creare una variabile `z` con valori pari a 0 se le osservazioni sono al di sopra del 25-esimo percentile, e 1 altrimenti;
+c. Restituisca un data frame contenente la variabili `x` e `y` solo per le osservazioni aventi `z` pari a 1.
+
+Testare la funzione usando `Happiness_Score` come `x` e `City` come `y`.
+
+
+```{r}
+
+```
