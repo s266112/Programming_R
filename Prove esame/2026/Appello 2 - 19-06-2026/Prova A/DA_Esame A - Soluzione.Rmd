@@ -4,9 +4,9 @@ subtitle: '19/06/2026 - Tempo a disposizione 2 ore'
 author: "Alessio Matessi - SM321657"
 date: "Soluzione risolta: 01 - 07 - 2026"
 output: 
+  html_document: default
   pdf_document:
     latex_engine: xelatex
-  html_document: default
 ---
 
 Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
@@ -195,10 +195,13 @@ ___
 
 ## ✏️ Svolgimento
 ```{r}
+# Verifica iniziale
+table(dati_2024$Continent, dati_2024$Noise_Level)
+
 # Seleziono le osservazioni per Continent = "Europe" e Noise_Level = "Low"
 sottoinsieme <- dati_2024[dati_2024$Continent == "Europe" & dati_2024$Noise_Level == "Low", ]
 
-# Mediane delle variabili numeriche
+# Mediane
 sapply(sottoinsieme[, c("Happiness_Score", "Air_Quality_Index")], median, na.rm = TRUE)
 
 ```
@@ -214,10 +217,10 @@ Per le osservazioni con `Continent == "Europe"` e `Noise_Level == "Low"`, le med
 ___
 - **Punto 5** [**4 pt**]: Si rappresentino graficamente le distribuzioni di `Happiness_Score` condizionate ai livelli di `Continent`. Cosa emerge dall'analisi del grafico? Escludendo le categorie `North America`, `Oceania` e `Europe`, quale delle seguenti affermazioni è VERA?
 
-  a. `[ ❌ ]` Vi è ancora una chiara evidenza di differenza tra le medie di `Happiness_Score` per continente.
-  b. `[ ❌ ]` Il valore della devianza within è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
-  c. `[✅ ]` Ci aspettiamo una riduzione del valore dell'$\eta^2$.
-  d. `[ ❌ ]` Il valore della devianza between è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+  a. `[F]` Vi è ancora una chiara evidenza di differenza tra le medie di `Happiness_Score` per continente.
+  b. `[F]` Il valore della devianza within è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+  c. `[V]` Ci aspettiamo una riduzione del valore dell'$\eta^2$.
+  d. `[F]` Il valore della devianza between è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
   
 ## ✏️ Svolgimento
 ```{r}
@@ -239,8 +242,8 @@ dati_ridotti <- dati_2024[!dati_2024$Continent %in% c("North America", "Oceania"
 tapply(dati_ridotti$Happiness_Score, dati_ridotti$Continent, mean)
 
 # ANOVA per confrontare le medie (opzionale)
-# summary(aov(Happiness_Score ~ Continent, data = dati_2024))
-# summary(aov(Happiness_Score ~ Continent, data = dati_ridotti))
+summary(aov(Happiness_Score ~ Continent, data = dati_2024))
+summary(aov(Happiness_Score ~ Continent, data = dati_ridotti))
 ```
 
 ## 💥 Risposta:
@@ -416,10 +419,10 @@ Le città con traffico più intenso tendono ad avere una qualità dell'aria pegg
 ___
 - **6.4** [**3 pt**]: Si ottenga il modello di regressione lineare avente come variabile risposta `Happiness_Score` e come variabili esplicative `Air_Quality_Index` e `Air_Quality_Index` al quadrato. Selezionare quale delle seguenti affermazioni è FALSA.
 
-  a. `[❌  ]` L'incremento del coefficiente di determinazione rispetto al modello al punto 6 è inferiore ad un punto percentuale. 
-  b. `[ ✅]` L'effetto di un incremento unitario di `Air_Quality_Index` su `Happiness_Score` è di circa -0.03.
-  c. `[ ❌ ]` Il valore predetto di `Happiness_Score` quando `Air_Quality_Index` è 5 è 8.24.
-  d. `[ ❌ ]` I residui mostrano un'asimmetria negativa.
+  a. `[V]` L'incremento del coefficiente di determinazione rispetto al modello al punto 6 è inferiore ad un punto percentuale. 
+  b. `[F]` L'effetto di un incremento unitario di `Air_Quality_Index` su `Happiness_Score` è di circa -0.03.
+  c. `[V]` Il valore predetto di `Happiness_Score` quando `Air_Quality_Index` è 5 è 8.24.
+  d. `[V]` I residui mostrano un'asimmetria negativa.
   
 ## ✏️ Svolgimento
 ```{r}
@@ -472,10 +475,10 @@ Il modello con `Air_Quality_Index` e il suo quadrato è:
 ____
 - **Punto 7**: [**4 pt**]: Si applichi un algoritmo di cluster analysis gerarchico con il metodo di Ward che consideri le seguenti variabili: `Green_Space_Area`, `Air_Quality_Index`, `Noise_Level`, `Traffic`. Si selezionino due gruppi e si scelga la risposta VERA tra le seguenti.
 
-  a. `[✅]` Uno dei gruppi è caratterizzato principalmente da paesi in Asia ed Europa.
-  b. `[ ❌ ]` Rispetto alla variabile `Traffic`, le città con traffico alto non si trovano in un unico gruppo.
-  c. `[ ❌ ]` Le città con un livello di `Noise_level` basso sono concentrate tutte in un unico cluster.
-  d. `[ ❌ ]` Le medie condizionate della variabile `Happiness_Score` rispetto ai due gruppi sono di 4.97 e 7.51.
+  a. `[V]` Uno dei gruppi è caratterizzato principalmente da paesi in Asia ed Europa.
+  b. `[F]` Rispetto alla variabile `Traffic`, le città con traffico alto non si trovano in un unico gruppo.
+  c. `[F]` Le città con un livello di `Noise_level` basso sono concentrate tutte in un unico cluster.
+  d. `[F]` Le medie condizionate della variabile `Happiness_Score` rispetto ai due gruppi sono di 4.97 e 7.51.
   
 ## ✏️ Svolgimento
 ```{r}

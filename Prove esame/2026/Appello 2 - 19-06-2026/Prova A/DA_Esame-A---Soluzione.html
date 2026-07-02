@@ -650,10 +650,20 @@ per le osservazioni selezionate</li>
 </div>
 <div id="svolgimento-3" class="section level2">
 <h2>✏️ Svolgimento</h2>
+<pre class="r"><code># Verifica iniziale
+table(dati_2024$Continent, dati_2024$Noise_Level)</code></pre>
+<pre><code>##                
+##                 Low Medium Hight Very High
+##   Africa          1      0     1         0
+##   Asia            0      5    15         7
+##   Europe         16      3     1         0
+##   North America   2      6     1         0
+##   Oceania        48      0     1         0
+##   South America   0      6     2         0</code></pre>
 <pre class="r"><code># Seleziono le osservazioni per Continent = &quot;Europe&quot; e Noise_Level = &quot;Low&quot;
 sottoinsieme &lt;- dati_2024[dati_2024$Continent == &quot;Europe&quot; &amp; dati_2024$Noise_Level == &quot;Low&quot;, ]
 
-# Mediane delle variabili numeriche
+# Mediane
 sapply(sottoinsieme[, c(&quot;Happiness_Score&quot;, &quot;Air_Quality_Index&quot;)], median, na.rm = TRUE)</code></pre>
 <pre><code>##   Happiness_Score Air_Quality_Index 
 ##               7.6              40.0</code></pre>
@@ -676,12 +686,12 @@ rappresentino graficamente le distribuzioni di
 le categorie <code>North America</code>, <code>Oceania</code> e
 <code>Europe</code>, quale delle seguenti affermazioni è VERA?</p>
 <ol style="list-style-type: lower-alpha">
-<li><code>[ ❌ ]</code> Vi è ancora una chiara evidenza di differenza
-tra le medie di <code>Happiness_Score</code> per continente.</li>
-<li><code>[ ❌ ]</code> Il valore della devianza within è sicuramente
+<li><code>[F]</code> Vi è ancora una chiara evidenza di differenza tra
+le medie di <code>Happiness_Score</code> per continente.</li>
+<li><code>[F]</code> Il valore della devianza within è sicuramente
 maggiore di quello ottenuto considerando tutti i continenti.</li>
-<li><code>[✅ ]</code> Ci aspettiamo una riduzione del valore dell’<span class="math inline">\(\eta^2\)</span>.</li>
-<li><code>[ ❌ ]</code> Il valore della devianza between è sicuramente
+<li><code>[V]</code> Ci aspettiamo una riduzione del valore dell’<span class="math inline">\(\eta^2\)</span>.</li>
+<li><code>[F]</code> Il valore della devianza between è sicuramente
 maggiore di quello ottenuto considerando tutti i continenti.</li>
 </ol></li>
 </ul>
@@ -710,8 +720,16 @@ tapply(dati_ridotti$Happiness_Score, dati_ridotti$Continent, mean)</code></pre>
 <pre><code>##        Africa          Asia South America 
 ##       5.55000       4.32963       4.97500</code></pre>
 <pre class="r"><code># ANOVA per confrontare le medie (opzionale)
-# summary(aov(Happiness_Score ~ Continent, data = dati_2024))
-# summary(aov(Happiness_Score ~ Continent, data = dati_ridotti))</code></pre>
+summary(aov(Happiness_Score ~ Continent, data = dati_2024))</code></pre>
+<pre><code>##              Df Sum Sq Mean Sq F value Pr(&gt;F)    
+## Continent     5  198.3   39.65   31.25 &lt;2e-16 ***
+## Residuals   109  138.3    1.27                   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary(aov(Happiness_Score ~ Continent, data = dati_ridotti))</code></pre>
+<pre><code>##             Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Continent    2   4.75   2.374   1.302  0.285
+## Residuals   34  62.02   1.824</code></pre>
 </div>
 <div id="risposta-4" class="section level2">
 <h2>💥 Risposta:</h2>
@@ -1002,15 +1020,14 @@ modello di regressione lineare avente come variabile risposta
 <code>Air_Quality_Index</code> e <code>Air_Quality_Index</code> al
 quadrato. Selezionare quale delle seguenti affermazioni è FALSA.</p>
 <ol style="list-style-type: lower-alpha">
-<li><code>[❌  ]</code> L’incremento del coefficiente di determinazione
+<li><code>[V]</code> L’incremento del coefficiente di determinazione
 rispetto al modello al punto 6 è inferiore ad un punto percentuale.</li>
-<li><code>[ ✅]</code> L’effetto di un incremento unitario di
+<li><code>[F]</code> L’effetto di un incremento unitario di
 <code>Air_Quality_Index</code> su <code>Happiness_Score</code> è di
 circa -0.03.</li>
-<li><code>[ ❌ ]</code> Il valore predetto di
-<code>Happiness_Score</code> quando <code>Air_Quality_Index</code> è 5 è
-8.24.</li>
-<li><code>[ ❌ ]</code> I residui mostrano un’asimmetria negativa.</li>
+<li><code>[V]</code> Il valore predetto di <code>Happiness_Score</code>
+quando <code>Air_Quality_Index</code> è 5 è 8.24.</li>
+<li><code>[V]</code> I residui mostrano un’asimmetria negativa.</li>
 </ol></li>
 </ul>
 </div>
@@ -1099,14 +1116,13 @@ consideri le seguenti variabili: <code>Green_Space_Area</code>,
 <code>Traffic</code>. Si selezionino due gruppi e si scelga la risposta
 VERA tra le seguenti.</p>
 <ol style="list-style-type: lower-alpha">
-<li><code>[✅]</code> Uno dei gruppi è caratterizzato principalmente da
+<li><code>[V]</code> Uno dei gruppi è caratterizzato principalmente da
 paesi in Asia ed Europa.</li>
-<li><code>[ ❌ ]</code> Rispetto alla variabile <code>Traffic</code>, le
+<li><code>[F]</code> Rispetto alla variabile <code>Traffic</code>, le
 città con traffico alto non si trovano in un unico gruppo.</li>
-<li><code>[ ❌ ]</code> Le città con un livello di
-<code>Noise_level</code> basso sono concentrate tutte in un unico
-cluster.</li>
-<li><code>[ ❌ ]</code> Le medie condizionate della variabile
+<li><code>[F]</code> Le città con un livello di <code>Noise_level</code>
+basso sono concentrate tutte in un unico cluster.</li>
+<li><code>[F]</code> Le medie condizionate della variabile
 <code>Happiness_Score</code> rispetto ai due gruppi sono di 4.97 e
 7.51.</li>
 </ol></li>
