@@ -1,0 +1,620 @@
+---
+title: "Data Analytics - Esame - Compito B"
+subtitle: '19/06/2026 - Tempo a disposizione 2 ore'
+author: "Alessio Matessi - SM321657"
+date: "Soluzione risolta: 02 - 07 - 2026"
+output: 
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex
+---
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
+
+  1. Accertarsi che il file compili correttamente prima di iniziare l'esame
+  2. Compilare spesso
+  3. Se non si riesce a risolvere l'errore di compilazione, utilizzare `eval = F` nel chunk (si veda l'esempio dove è stata inclusa la tilde per vostra convenienza)
+  
+  ```{r, eval = FALSE}
+     ~
+  ```
+---
+
+Si considerino i dati contenuti nel file `datiB.csv`. Il dataset contiene informazioni relative a diverse città del mondo e comprende le seguenti variabili:
+
+- `City`:  Nome della città;
+- `Continent`: Continente;
+- `Month`: Mese di registrazione dati;
+- `Year`: Anno di registrazione dati;
+- `Decibel_Level`: Livello medio di rumore (dB);
+- `Traffic_Density`: Densità del traffico (Low, Medium, High, Very High);
+- `Green_Space_Area`:  Percentuale di spazi verdi nella città;
+- `Air_Quality_Index`:  Indice che misura la qualità dell'aria;
+- `Happiness_Score`:  Punteggio medio di felicità della città (su una scala da 1 a 10);
+- `Cost_of_Living_Index`: Indice che misura il costo della vita nella città (rispetto a una città di riferimento);
+- `Healthcare_Index`: Indice che misura la qualità dell'assistenza sanitaria nella città.
+
+I valori mancanti sono codificati come ?. 
+
+### PARTE 1: ANALISI DEI DATI 
+
+- **Punto 1**: [**2 pt**]: Si mostri quanti valori mancanti sono presenti per ogni variabile. Quindi, dopo aver rimosso le osservazioni contenenti almeno un valore mancante, si crei un dataframe di lavoro selezionando le osservazioni relative all'anno 2024. Si mostri la struttura e la dimensione del dataset ottenuto.
+
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+dati <-read.csv("datiB.csv")
+
+# Converto "?" in NA
+dati[dati =="?"] <- NA
+
+# Converto le colonne numeriche (che sono lette come character a causa di "?")
+dati$Decibel_Level <- as.numeric(dati$Decibel_Level)
+dati$Green_Space_Area <- as.numeric(dati$Green_Space_Area)
+dati$Air_Quality_Index <- as.numeric(dati$Air_Quality_Index)
+dati$Happiness_Score <- as.numeric(dati$Happiness_Score)
+dati$Cost_of_Living_Index <- as.numeric(dati$Cost_of_Living_Index)
+dati$Healthcare_Index <- as.numeric(dati$Healthcare_Index)
+
+# Controllo NA per variabile
+colSums(is.na(dati))
+
+# Rimuovo le righe con NA
+dati_clean <- na.omit(dati)
+
+# Seleziono solo anno 2024
+dati_2024 <- dati_clean[dati_clean$Year == 2024, ]
+
+# Struttura e dimensione
+str(dati_2024)
+dim(dati_2024)
+```
+## 💥 Risposta:
+
+**NA per variabile**: tutte le variabili hanno **0** valori mancanti.
+
+Dopo il filtro per l'anno 2024, il dataset ottenuto ha **117 osservazioni** e **11 variabili**.
+
+Le variabili sono:  
+- `City`, `Continent`, `Month` (character)  
+- `Year` (integer)  
+- `Decibel_Level` (numeric)  
+- `Traffic_Density` (character)  
+- `Green_Space_Area`, `Air_Quality_Index`, `Cost_of_Living_Index`, `Healthcare_Index` (numeric)  
+- `Happiness_Score` (numeric)  
+
+
+___
+- **Punto 2** [**3 pt**]: Si costruisca una nuova variabile `Noise_Level`, ottenuta discretizzando la variabile `Decibel_Level` con la seguente regola: "Low" per [50, 62.5), "Medium" per  [62.5, 75), "High" per [75, 87.5), "Very High": [87.5, 100]. Si riportino quindi la distribuzione di frequenza assoluta e relativa della variabile `Noise_Level`. Si ottenga l'istogramma della variabile `Noise_Level` con la stessa suddivisione in classi. 
+
+## ✏️ Svolgimento
+```{r}
+# Creazione della variabile Noise_level
+dati_2024$Noise_Level <- cut(
+  dati_2024$Decibel_Level,
+  breaks = c(50, 62.5, 75, 87.5, 100),
+  right = FALSE,
+  labels = c("Low", "Medium", "Hight", "Very High")
+)
+
+# Frequenze assolute e relative
+freq_ass <- table(dati_2024$Noise_Level)
+freq_ass
+freq_rel <- prop.table(freq_ass)
+freq_ass
+
+# Istogramma
+hist(dati_2024$Decibel_Level,
+     breaks = c(50, 62.5, 75, 87.5, 100),
+     right = FALSE,
+     main = "Distribuzione di Noise_Level",
+     xlab = "Decibel_Level",
+     col = "steelblue",
+     border = "white")
+
+```
+
+## 💥 Risposta:
+
+**Frequenze assolute**:  
+- Low: 68  
+- Medium: 20  
+- High: 27  
+- Very High: 2  
+
+**Frequenze relative**:  
+- Low: 68/117 = **58.12%**  
+- Medium: 20/117 = **17.09%**  
+- High: 27/117 = **23.08%**  
+- Very High: 2/117 = **1.71%**  
+
+**Istogramma**: la distribuzione è concentrata nella classe **Low** (68 osservazioni su 117), seguita da **High** (27) e **Medium** (20). La classe **Very High** è quasi assente (solo 2 osservazioni).
+
+
+___
+- **Punto 3**:[**5 pt**]: Si aggiunga al dataframe la variabile `Traffic`, ottenuta da `Traffic_Density` accorpando le modalità "High" e "Very High". La nuova variabile deve rispettare l'ordinamento crescente delle classi ("Low"< "Medium" < "High"). Si valuti graficamente se le distribuzioni della variabile `Noise_Level` condizionate ai livelli di `Traffic` risultano differenti. Successivamente si valuti con un indice normalizzato l'eventuale associazione tra le due variabili. Il risultato numerico conferma l'intuizione derivata dall'osservazione del grafico?
+
+## ✏️ Svolgimento
+```{r}
+# Creo la variabile Traffic accorpando High e Very High
+dati_2024$Traffic <- factor(
+  dati_2024$Traffic_Density,
+  levels = c("Low", "Medium", "High", "Very High"),
+  labels = c("Low", "Medium", "High", "High")
+)
+
+# Verifico l'ordinamento
+levels(dati_2024$Traffic)
+
+# Tabella di contingenxza Noise_Level vs Traffic
+tab <- table(dati_2024$Noise_Level, dati_2024$Traffic)
+tab
+
+# Grafico a barre affiancate per confrontare le distribuzioni
+barplot(tab,
+        beside = TRUE,
+        legend = TRUE,
+        col = c("lightblue", "lightgreen", "salmon", "gold"),
+        main = "Noise_Level per Traffic",
+        xlab = "Traffic",
+        ylab = "Frequenza")
+
+# Calcolo V di Cramer 
+chi2 <- chisq.test(tab)$statistic
+n <- sum(tab)
+k <- min(dim(tab))
+V_cramer <- sqrt(chi2 / (n * (k - 1)))
+V_cramer
+
+```
+
+## 💥 Risposta:
+
+**Nuova variabile `Traffic`**: Ho accorpato le modalità "High" e "Very High" in un'unica categoria "High". La nuova variabile ha livelli ordinati: **Low < Medium < High**.
+
+**Tabella di contingenza `Noise_Level` vs `Traffic`**:
+
+| Noise_Level | Low | Medium | High |
+|-------------|-----|--------|------|
+| Low         | 49  | 15     | 4    |
+| Medium      | 0   | 7      | 13   |
+| High        | 0   | 0      | 27   |
+| Very High   | 0   | 0      | 2    |
+
+**Grafico**: si osserva che:  
+- Per **Traffic Low**, solo `Noise_Level Low` è presente (49 casi).  
+- Per **Traffic Medium**, compaiono `Noise_Level Low` (15) e `Medium` (7).  
+- Per **Traffic High**, compaiono tutte le categorie, con prevalenza di `High` (27) e `Very High` (2).  
+
+Le distribuzioni risultano **chiaramente differenti**: All'aumentare del traffico, aumenta anche il livello di rumore.  
+
+**Indice V di Cramer**: `V = 0.633`
+
+**Nota**: il test χ² ha generato un warning perché alcune celle hanno frequenze attese inferiori a 5. Tuttavia, il V di Cramer rimane un valido indicatore dell'associazione e il suo valore elevato (0.63) conferma una **forte relazione** tra `Noise_Level` e `Traffic`.
+
+___
+- **Punto 4** [**3 pt**]: Si considerino le variabili quantitative `Happiness_score` and `Air_Quality_Index` per la modalità `Oceania` della variabile `Continent` e `High` della variabile `Noise_level`. Stampare le mediane delle variabili numeriche per le osservazioni selezionate.
+
+## ✏️ Svolgimento
+```{r}
+# Verifica iniziale
+table(dati_2024$Continent, dati_2024$Noise_Level)
+
+# Seleziono le osservazioni per Continent = "Oceania" e Noise_Level = "High"
+sottoinsieme <- dati_2024[dati_2024$Continent == "Oceania" & dati_2024$Noise_Level == "High", ]
+
+# Mediane
+sapply(sottoinsieme[, c("Happiness_Score", "Air_Quality_Index")], median, na.rm = TRUE)
+
+```
+
+
+## 💥 Risposta:
+
+Non esistono osservazioni con `Continent == "Oceania"` e `Noise_Level == "High"` (la condizione non è mai soddisfatta).
+Pertanto, le mediane delle variabili numeriche non sono definibili (`NA`).
+
+
+
+___
+- **Punto 5** [**4 pt**]: Si rappresentino graficamente le distribuzioni di `Happiness_Score` condizionate ai livelli di `Continent`. Cosa emerge dall'analisi del grafico? Escludendo le categorie `South America`, `Africa` e `Asia`, quale delle seguenti affermazioni è VERA?
+
+  a. `[F]` Vi è ancora una chiara evidenza di differenza tra le medie di `Happiness_Score` per continente.
+  b. `[F]` Il valore della devianza within è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+  c. `[V]` Ci aspettiamo una riduzione del valore dell'$\eta^2$.
+  d. `[F]` Il valore della devianza between è sicuramente maggiore di quello ottenuto considerando tutti i continenti.
+  
+
+## ✏️ Svolgimento
+```{r}
+# Boxplot di Happiness_Score per Continent
+boxplot(Happiness_Score ~ Continent,
+        data = dati_2024,
+        col = "steelblue",
+        main = "Happiness_Score per Continent",
+        xlab = "Continent",
+        ylab = "Happiness_Score")
+
+# Calcolo medie per Continent
+tapply(dati_2024$Happiness_Score, dati_2024$Continent, mean)
+
+# Escludo South America, Africa e Asia
+dati_ridotti <- dati_2024[!dati_2024$Continent %in% c("South America", "Africa", "Asia"), ]
+
+# Nuove medie
+tapply(dati_ridotti$Happiness_Score, dati_ridotti$Continent, mean)
+
+# ANOVA per confrontare le medie (opzionale)
+summary(aov(Happiness_Score ~ Continent, data = dati_2024))
+summary(aov(Happiness_Score ~ Continent, data = dati_ridotti))
+```
+
+## 💥 Risposta:
+
+**Analisi del boxplot**:
+- **Oceania** e **Europa** hanno i valori di `Happiness_Score` più alti (medie: 7.44 e 7.22).  
+- **Nord America** ha valori intermedi (media: 6.21).  
+- **Asia**, **Sud America** e **Africa** hanno i valori più bassi (medie: 4.37, 4.98, 5.55).  
+
+**Escludendo le categorie `South America`, `Africa` e `Asia`**, rimangono **Europa**, **Nord America** e **Oceania**. Le loro medie sono:  
+- Europa: 7.22  
+- Nord America: 6.21  
+- Oceania: 7.44  
+
+L'ANOVA sui tre gruppi rimanenti ha p-value = 0.00498, indicando che esistono ancora differenze significative tra le medie, ma meno marcate rispetto a prima.
+
+**Valutazione delle affermazioni**:
+
+- **a.** ❌ *"Vi è ancora una chiara evidenza di differenza tra le medie di Happiness_Score per continente"* → **FALSA**. Le differenze sono meno evidenti rispetto a quando si includevano tutti i continenti.
+
+- **b.** ❌ *"Il valore della devianza within è sicuramente maggiore di quello ottenuto considerando tutti i continenti"* → **FALSA**. La devianza within è passata da 140.4 a 77.04, quindi è diminuita.
+
+- **c.** ✅ *"Ci aspettiamo una riduzione del valore dell'η²"* → **VERA**. Escludendo continenti con medie estreme, la devianza between si riduce (da 200.7 a 11.53), quindi anche η² diminuisce.
+
+- **d.** ❌ *"Il valore della devianza between è sicuramente maggiore di quello ottenuto considerando tutti i continenti"* → **FALSA**. La devianza between è diminuita, non aumentata.
+
+**Risposta corretta**: **c.**
+
+
+___
+- **Punto 6** [**1 pt**]: Si adatti un modello di regressione lineare semplice avente come variabile risposta `Happiness_Score` e come variabili esplicative `Air_Quality_Index` e si stampi l'output del modello.
+
+
+## ✏️ Svolgimento
+```{r}
+# Modello di regressione lineare semplice
+mod6 <- lm(Happiness_Score ~ Air_Quality_Index, data = dati_2024)
+summary(mod6)
+
+```
+
+## 💥 Risposta:
+
+Il modello di regressione lineare semplice stimato è:
+
+`Happiness_Score = 8.072 - 0.0222 * Air_Quality_Index`
+
+**Interpretazione dei coefficienti**:  
+- **Intercetta (8.072)**: valore atteso di `Happiness_Score` quando `Air_Quality_Index` è 0 (non interpretabile in termini reali).  
+- **Pendenza (-0.0222)**: per ogni unità in più di `Air_Quality_Index`, il `Happiness_Score` diminuisce in media di **0.0222** (p-value < 0.001). L'effetto è statisticamente significativo.  
+
+**Bontà del modello**:  
+- **R² = 0.6965**: il modello spiega circa il **69.7%** della variabilità di `Happiness_Score`.  
+- **R² aggiustato = 0.6938**  
+- **p-value del modello**: < 2.2e-16 (modello complessivamente significativo)  
+
+La relazione è **negativa e forte**: all'aumentare dell'inquinamento (Air_Quality_Index più alto), la felicità tende a diminuire.
+
+
+___
+- **6.1** [**1 pt**]: Si calcoli il coefficiente della variabile `Air_Quality_Index` a mano e si verifichi che esso corrisponde a quello ottenuto dall'output del modello.
+
+## ✏️ Svolgimento
+```{r}
+# Calcolo coefficiente usando la formula: beta_1 = Cov(x, y) / Var(x)
+cov_xy <- cov(dati_2024$Air_Quality_Index, dati_2024$Happiness_Score)
+var_x <- var(dati_2024$Air_Quality_Index)
+beta_1 <- cov_xy / var_x
+beta_1
+
+# Confronto con il coefficiente del modello
+coef(mod6)[2]
+
+```
+
+## 💥 Risposta:
+
+Il coefficiente della variabile `Air_Quality_Index` calcolato "a mano" con la formula:
+
+$$ \hat{\beta}_1 = \frac{\text{Cov}(x, y)}{\text{Var}(x)} $$
+
+è **-0.02219606**, che coincide esattamente con il coefficiente stimato dal modello di regressione lineare.
+
+
+___
+- **6.2** [**2 pt**]: Ottenere il grafico dei residui vs valori stimati e stampare le città con residuo minore di -2.
+
+## ✏️ Svolgimento
+```{r}
+# Grafico residui vs valori stimati
+plot(fitted(mod6), residuals(mod6),
+     xlab = "Valori stimati",
+     ylab = "Residui",
+     main = "Residui vs Valori stimati",
+     pch = 19,
+     col = "steelblue")
+abline(h = 0, col = "red", lty = 2)
+
+# Identifico le osservazioni con residuo minore di -2
+residui <- residuals(mod6)
+indici <- which(residui < -2)
+dati_2024[indici, c("City", "Continent", "Happiness_Score", "Air_Quality_Index")]
+
+```
+
+## 💥 Risposta:
+
+**Grafico residui vs valori stimati**:  
+- I residui sono distribuiti in modo abbastanza casuale intorno allo zero, senza un pattern evidente.  
+- Non si osservano forme particolari (ad esempio, dispersione crescente o decrescente), il che suggerisce che l'assunzione di omoschedasticità è ragionevolmente rispettata.  
+
+**Città con residuo minore di -2**:
+
+| City | Continent | Happiness_Score | Air_Quality_Index |
+|------|-----------|-----------------|-------------------|
+| Cairo | Africa | 3.5 | 115 |
+| Caracas | South America | 3.0 | 115 |
+| Te Hana | Oceania | 5.5 | 20 |
+| Waipu | Oceania | 5.2 | 35 |
+| Ruakaka | Oceania | 5.0 | 30 |
+| Whangarei | Oceania | 4.8 | 25 |
+| Dargaville | Oceania | 4.5 | 20 |
+
+**Continenti corrispondenti**:   
+- **Africa** (1 città)   
+- **South America** (1 città)   
+- **Oceania** (5 città).   
+
+
+___
+- **6.3** [**1 pt**]: Si ottenga il grafico della retta di regressione del modello sovrapposta allo scatterplot dei punti osservati e si colori i punti in accordo alle categorie della variabile `Noise_Level`.
+
+
+## ✏️ Svolgimento
+```{r}
+# Scatterplot con retta di regressione e colori per Noise_Level
+plot(dati_2024$Air_Quality_Index, 
+     dati_2024$Happiness_Score,
+     col = as.numeric(dati_2024$Noise_Level),
+     pch = 19,
+     xlab = "Air_Quality_Index",
+     ylab = "Happiness_Score",
+     main = "Regressione lineare con punti colorati per Noise_Level")
+
+# Aggiungo la retta di regressione
+abline(mod6, col = "red", lwd = 2)
+
+# Legenda
+legend("topright",
+       legend = levels(dati_2024$Noise_Level),
+       col = 1:length(levels(dati_2024$Noise_Level)),
+       pch = 19,
+       title = "Noise_Level")
+
+```
+
+## 💥 Risposta:
+
+Il grafico mostra lo **scatterplot** tra `Air_Quality_Index` (x) e `Happiness_Score` (y), con i punti colorati in base ai livelli di `Noise_Level` (Low, Medium, High, Very High).
+
+**Osservazioni**: 
+
+- La **retta di regressione rossa** conferma la relazione negativa tra le due variabili: all'aumentare dell'indice di qualità dell'aria (peggiore qualità), il punteggio di felicità diminuisce.  
+
+- I punti colorati mostrano una chiara separazione:  
+  - **Noise_Level Low** (blu): si concentra nella zona con basso `Air_Quality_Index` e alto `Happiness_Score`.  
+  - **Noise_Level Medium** (verde): si colloca in una posizione intermedia.  
+  - **Noise_Level High** (rosso): si concentra nella zona con alto `Air_Quality_Index` e basso `Happiness_Score`.  
+  - **Noise_Level Very High** (giallo): è rappresentato da soli 2 punti, che non sono visibili nel grafico a causa della loro scarsa numerosità.  
+
+**Interpretazione**: le città con livelli di rumore più elevati tendono ad avere una qualità dell'aria peggiore e, di conseguenza, una felicità media più bassa. La relazione tra `Air_Quality_Index` e `Happiness_Score` rimane negativa indipendentemente dal livello di rumore.
+
+
+___
+- **6.4** [**3 pt**]: Si ottenga il modello di regressione lineare avente come variabile risposta `Happiness_Score` e come variabili esplicative `Air_Quality_Index` e `Air_Quality_Index` al quadrato. Selezionare quale delle seguenti affermazioni è VERA.
+
+  a. `[F]` L'incremento del coefficiente di determinazione rispetto al modello al punto 6 è superiore ad un punto percentuale. 
+  b. `[V]` L'effetto di un incremento unitario di `Air_Quality_Index` su `Happiness_Score` è di circa -0.03.
+  c. `[F]` Il valore predetto di `Happiness_Score` quando `Air_Quality_Index` è 5 è 8.23.
+  d. `[F]` I residui sono simmetrici 
+  
+  
+## ✏️ Svolgimento
+```{r}
+# Modello quadratico
+mod6.4 <- lm(Happiness_Score ~ Air_Quality_Index + I(Air_Quality_Index^2), data = dati_2024)
+summary(mod6.4)
+
+# R^2 del modello lineare (punto 6)
+R2_lineare <- summary(mod6)$r.squared
+
+# R^2 del modello quadratico
+R2_quadratico <- summary(mod6.4)$r.squared
+
+# Incremento di R^2
+R2_quadratico - R2_lineare
+
+# Coefficiente di Air_Quality_Index nel modello quadratico
+coef(mod6.4)[2]
+
+# Predizione per AQI = 5
+predict(mod6.4, newdata = data.frame(Air_Quality_Index = 5))
+
+# Asimmetria dei residui
+library(e1071)
+skewness(residuals(mod6.4))
+
+```
+
+## 💥 Risposta:
+
+**Modello quadratico stimato**:
+
+`Happiness_Score = 8.411 - 0.0326 * AQI + 0.0000457 * AQI^2`
+
+**Verifica delle affermazioni**:
+
+- **a.** ❌ *"L'incremento del coefficiente di determinazione rispetto al modello al punto 6 è superiore ad un punto percentuale"* → **FALSA**. L'incremento è **0.00967** (0.967 punti percentuali), che è **inferiore** a 1 punto percentuale.
+
+- **b.** ✅ *"L'effetto di un incremento unitario di Air_Quality_Index su Happiness_Score è di circa -0.03"* → **VERA**. Il coefficiente lineare del modello quadratico è -0.0326, che approssimato è circa -0.03. (L'effetto marginale non è costante, ma per valori tipici di AQI è circa -0.03).
+
+- **c.** ❌ *"Il valore predetto di Happiness_Score quando Air_Quality_Index è 5 è 8.23"* → **FALSA**. La predizione è **8.25** (non 8.23).
+
+- **d.** ❌ *"I residui sono simmetrici"* → **FALSA**. La skewness dei residui è **-1.176**, che indica asimmetria negativa.
+
+**Risposta corretta**: **b.**
+
+
+___
+- **Punto 7** [**4 pt**]: Si applichi un algoritmo di cluster analysis gerarchico con il metodo di Ward che consideri le seguenti variabili: `Green_Space_Area`, `Air_Quality_Index`, `Noise_Level`, `Traffic`. Si selezionino due gruppi e si scelga la risposta FALSA tra le seguenti.
+
+  a. `[ V]` Uno dei gruppi è caratterizzato principalmente da paesi in Oceania ed Europa.
+  b. `[F]` Rispetto alla variabile `Traffic`, le città con traffico alto non si trovano in un unico gruppo.
+  c. `[V ]` Le città con un livello di `Noise_level` basso sono quasi tutte concentrate in un unico cluster.
+  d. `[F]` Le medie condizionate della variabile `Happiness_Score` rispetto ai due gruppi sono di 4.97 e 7.51.
+  
+
+## ✏️ Svolgimento:
+```{r}
+# Preparo i dati per il clustering (variabili miste)
+library(cluster)
+
+# Creo un subset con le variabili da utilizzare
+dati_cluster <- dati_2024[, c("Green_Space_Area", "Air_Quality_Index", "Noise_Level", "Traffic")]
+
+# Converto le variabili qualitative in factor
+dati_cluster$Noise_Level <- factor(dati_cluster$Noise_Level, 
+                                   levels = c("Low", "Medium", "High", "Very High"),
+                                   ordered = TRUE)
+dati_cluster$Traffic <- factor(dati_cluster$Traffic, 
+                               levels = c("Low", "Medium", "High"),
+                               ordered = TRUE)
+
+# Matrice di dissimilarità con Gower (per dati misti)
+gower_dist <- daisy(dati_cluster, metric = "gower")
+
+# Clustering gerarchico con metodo di Ward
+hc_ward <- hclust(gower_dist, method = "ward.D2")
+
+# Dendrogramma
+plot(hc_ward, labels = FALSE, main = "Dendrogramma - Ward", xlab = "", sub = "")
+
+# Taglio per ottenere 2 cluster
+clusters <- cutree(hc_ward, k = 2)
+table(clusters)
+
+# Aggiungo i cluster al dataset
+dati_2024$cluster_ward <- clusters
+
+# Analisi dei cluster
+# 1. Distribuzione di Traffic per cluster
+table(dati_2024$Traffic, dati_2024$cluster_ward)
+
+# 2. Distribuzione di Noise_Level per cluster
+table(dati_2024$Noise_Level, dati_2024$cluster_ward)
+
+# 3. Medie di Happiness_Score per cluster
+tapply(dati_2024$Happiness_Score, dati_2024$cluster_ward, mean)
+
+# 4. Continenti per cluster
+table(dati_2024$Continent, dati_2024$cluster_ward)
+```
+
+
+## 💥 Risposta:
+
+**Caratteristiche dei due cluster**:
+
+| Caratteristica | Cluster 1 | Cluster 2 |
+|----------------|-----------|-----------|
+| Numerosità | 46 | 71 |
+| Traffic | Solo High (46) | Low (49) e Medium (22) |
+| Noise_Level | Prevalentemente High/Very High (27+2) | Prevalentemente Low (64) |
+| Happiness_Score (media) | 4.78 | 7.40 |
+| Continenti principali | Asia (27), Europa (6), Sud America (7) | Oceania (49), Europa (14) |
+
+**Valutazione delle affermazioni**:
+
+- **a.** ✅ *"Uno dei gruppi è caratterizzato principalmente da paesi in Oceania ed Europa"* → **VERA**. Il Cluster 2 ha 49 città dell'Oceania e 14 dell'Europa (63 su 71).
+
+- **b.** ❌ *"Rispetto alla variabile Traffic, le città con traffico alto non si trovano in un unico gruppo"* → **FALSA**. Tutte le città con traffico "High" (46 osservazioni) sono nel Cluster 1.
+
+- **c.** ✅ *"Le città con un livello di Noise_level basso sono quasi tutte concentrate in un unico cluster"* → **VERA**. 64 città su 68 con Noise_Level "Low" sono nel Cluster 2.
+
+- **d.** ❌ *"Le medie condizionate della variabile Happiness_Score rispetto ai due gruppi sono di 4.97 e 7.51"* → **FALSA**. Le medie reali sono **4.78** e **7.40**.
+
+**Pertanto, le affermazioni false sono b e d.** Se la consegna ne richiede una sola, la risposta attesa è **b**.
+
+
+---
+
+### PARTE 2: R
+
+- **Punto 8** [**4 pt**]: Scrivere una funzione chiamata `funzione` che prenda in input un vettore numerico `x` e una variabile di tipo character `y` e che svolga i seguenti passaggi:
+
+a. Controlli che il tipo di `x` sia numeric e quello di `y` sia character, e in tal caso stampi il messaggio `"OK: il vettore x è di tipo numeric, mentre y è di tipo character"`;
+b. Calcoli il 25-esimo percentile di `x` e lo utilizzi per creare una variabile `z` con valori pari a 0 se le osservazioni sono al di sopra del 25-esimo percentile, e 1 altrimenti;
+c. Restituisca un data frame contenente la variabili `x` e `y` solo per le osservazioni aventi `z` pari a 1.
+
+Testare la funzione usando `Happiness_Score` come `x` e `City` come `y`.
+
+## ✏️ Svolgimento:
+```{r}
+# Funzione richiesta
+funzione <- function(x, y) 
+{
+  # Punto a: Controllo dei tipi
+  if (is.numeric(x) && is.character(y)) 
+  {
+    print("OK: il vettore x è di tipo numeric, mentre y è di tipo character")
+  } else {
+    stop("Errore: x deve essere numeric e y deve essere character")
+  }
+  
+  # Punto b: Calcolo del 25-esimo percentile
+  p25 <- quantile(x, probs = 0.25, na.rm = TRUE)
+  
+  # Creazione della variabile z: 1 se x <= al 25-esimo percentile, 0 altrimenti
+  z <- ifelse(x <= p25, 1, 0)
+  
+  # Punto c: Creazione del data frame con x e y
+  df <- data.frame(x = x, y = y)
+  
+  # Selezione delle righe con z == 1
+  df_selezionato <- df[z == 1, ]
+  
+  return(df_selezionato)
+}
+
+# Test della funzione
+test <- funzione(dati_2024$Happiness_Score, dati_2024$City)
+
+# Mostro le prime righe del risultato
+head(test)
+
+```
+
+## 💥 Risposta:
+
+**Test della funzione** con `x = Happiness_Score` e `y = City`:
+
+Prime città selezionate (quelle con `Happiness_Score` <= 25-esimo percentile, pari a 5.5):
+
+| Happiness_Score | City |
+|-----------------|------|
+| 4.5             | Mumbai |
+| 5.2             | Mexico City |
+| 4.0             | Bangkok |
+| 3.5             | Cairo |
+| 5.0             | São Paulo |
+| 4.2             | Lima |
