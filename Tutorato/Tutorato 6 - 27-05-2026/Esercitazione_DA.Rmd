@@ -1,44 +1,26 @@
 ---
 title: "Esercitazione Data Analytics"
-output:
-  pdf_document: default
-  html_document:
-    df_print: paged
-geometry: margin=2cm
-fontsize: 11pt
+author: "Alessio Matessi - SM321657"
+date: "Soluzione risolta: 03 - 07 - 2026"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
+
+  1. Accertarsi che il file compili correttamente prima di iniziare l'esame
+  2. Compilare (e salvare!) spesso
+  3. Se non si riesce a risolvere l'errore di compilazione, utilizzare `eval = F` nel chunk (si veda l'esempio dove è stata inclusa la tilde per vostra convenienza)
+  
+```{r, eval = FALSE}
+    ~
 ```
 
-**Nome e cognome:**
+### PARTE 1: R
 
-**N. mat.:**
-
-------------------------------------------------------------------------
-
-Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. I file pdf e Rmd entrambi vanno consegnati tramite moodle.
-
-1.  Accertarsi che il file compili correttamente prima di iniziare l'esame
-
-2.  Compilare (e salvare!) spesso
-
-3.  Se non si riesce a risolvere l'errore di compilazione, utilizzare l'opzione `eval = F` nelle opzioni del chunk, ad esempio:
-
-\begin{verbatim}
-{r, eval=FALSE}
-summary(dataset)
-plot(x, y)
-\end{verbatim}
-
-------------------------------------------------------------------------
-
-## R
-
-### Esercizio 1.
-
-Scrivere una funzione che prenda in input un numero intero $n>10$. La funzione, dopo aver controllato che l'argomento rispetti la condizione richiesta, genererà un `data.frame` contenente $n$ osservazioni con le seguenti variabili:
+**Esercizio 1**: Scrivere una funzione che prenda in input un numero intero $n>10$. La funzione, dopo aver controllato che l'argomento rispetti la condizione richiesta, genererà un `data.frame` contenente $n$ osservazioni con le seguenti variabili:
 
 -   `Eta`: valori interi casuali **compresi tra 18 e 70**;
 
@@ -56,13 +38,39 @@ $$
 
 La funzione, che dovrà essere chiamata `funzione`, dovrà restituire il `data.frame` generato.
 
-### Esercizio 2
+## ✏️ Svolgimento
+```{r}
+# Scrivo la funzione
+funzione <- function(n){
+  # Controllo che n sia intero e > 10
+  if (!is.numeric(n) || n != round(n) || n <= 10) {
+    stop("Errore: n deve essere un numero intero > 10")
+  }
+  
+  # Genero le variabili
+  Eta <- sample(18:70, n, replace = TRUE)
+  Altezza <- rnorm(n, mean = 170, sd = 10)  # varianza 100 -> sd 10
+  epsilon <- rnorm(n, mean = 0, sd = 8)
+  Peso <- 0.7 * Altezza - 50 + epsilon
+  OreStudio <- sample(0:10, n, replace = TRUE)
+  Lavoro <- sample(c(0, 1), n, replace = TRUE)
+  Lavoro <- factor(Lavoro, levels = c(0, 1), labels = c("No", "Si"))
+  
+  # Creo il data.frame
+  df <- data.frame(Eta, Altezza, Peso, OreStudio, Lavoro)
+  return(df)
+}
 
-Estendere la funzione del punto precedente in modo tale che restituisca una **lista** contenente:
+# Test veloce (senza set.seed, solo per vedere se funziona)
+test_df <- funzione(15)
+head(test_df)
+str(test_df)
+```
+---
+
+**Esercizio 2**: Estendere la funzione del punto precedente in modo tale che restituisca una **lista** contenente:
 
 -   il `data.frame` generato;
-
-<!-- -->
 
 -   la media di ciascuna variabile numerica;
 
@@ -76,62 +84,584 @@ Estendere la funzione del punto precedente in modo tale che restituisca una **li
 
 Provare poi la funzione impostando `set.seed(123)`, $n=50$ e estrarre la matrice di correlazione.
 
-## Analisi dei Dati
+## ✏️ Svolgimento
+```{r}
+# Estensione della funzione
+funzione <- function(n){
+  # Controllo che n sia intero e > 10
+  if (!is.numeric(n) || n != round(n) || n <= 10) {
+    stop("Errore: n deve essere un numero intero > 10")
+  }
+  
+    # Genero le variabili
+  Eta <- sample(18:70, n, replace = TRUE)
+  Altezza <- rnorm(n, mean = 170, sd = 10)  
+  epsilon <- rnorm(n, mean = 0, sd = 8)
+  Peso <- 0.7 * Altezza - 50 + epsilon
+  OreStudio <- sample(0:10, n, replace = TRUE)
+  Lavoro <- sample(c(0, 1), n, replace = TRUE)
+  Lavoro <- factor(Lavoro, levels = c(0, 1), labels = c("No", "Si"))
+  
+  # Creo il data.frame
+  df <- data.frame(Eta, Altezza, Peso, OreStudio, Lavoro)
+  
+  # Elementi aggiuntivi per la lista
+  medie <- sapply(df[, sapply(df, is.numeric)], mean)
+  correlazione <- cor(df[, sapply(df, is.numeric)])
+  sopra_media <- sum(df$Peso > mean(df$Peso))
+  tabella_lavoro <- table(df$Lavoro)
+  df_ordinato <- df[order(df$OreStudio, decreasing = TRUE), ]
 
-Si considerino i dati contenuti nel file `animali.csv`. Si tratta di informazioni raccolte su 300 animali. La variabile `Peso` indica il peso in kg, `Altezza` l'altezza in cm, `Eta` l'età in anni, `OreSonno` le ore medie di sonno giornaliere. Sono inoltre presenti variabili qualitative, quali `Specie`, `Sesso` e `Domestico`.
+  # Restituisco la lista
+  lista <- list(
+    data = df,
+    media = medie,
+    correlazione = correlazione,
+    sopra_media = sopra_media,
+    tabella_lavoro = tabella_lavoro,
+    df_ordinato = df_ordinato
+  )
+  return(lista)
+}
 
-**1.** Quanto vale la devianza della variabile `Peso`?
+# Test con set.seed(123) e n = 50
+set.seed(123)
+risultato <- funzione(50)
 
-**2.** Standardizzare le variabili quantitative e salvarle in un oggetto `DataScaled`, poi calcolare la matrice di covarianza delle nuove variabili. Quale coppia presenta la covarianza maggiore?
+# Estraggo la matrice di correlazione
+matrice_cor <- risultato$correlazione
+matrice_cor
+```
 
-**3.** Calcolare la statistica $\chi^2$ per valutare l'associazione tra `Sesso` e `Domestico`; possiamo concludere che tra le due variabili sono in qualche modo associate? Perché?
+___
+### PARTE 2: Analisi dei Dati
 
-**4.** Creare una nuova variabile ottenuta dal prodotto logico di `Specie` e `Domestico`. Quale combinazione presenta la mediana di `Peso` più elevata?
+**Esercizio 3**: Si considerino i dati contenuti nel file `animali.csv`. Si tratta di informazioni raccolte su 300 animali. La variabile `Peso` indica il peso in kg, `Altezza` l'altezza in cm, `Eta` l'età in anni, `OreSonno` le ore medie di sonno giornaliere. Sono inoltre presenti variabili qualitative, quali `Specie`, `Sesso` e `Domestico`.
 
-**5.** Stimare una regressione lineare semplice avente come variabile di risposta `Peso` e come predittore `Altezza` e salvarla nell'oggetto `modello`:
+     **Punto 1.** Quanto vale la devianza della variabile `Peso`?
 
-     **5.1** La variabile `Altezza` sembra essere significativa? Da cosa possiamo concluderlo?
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+animali <- read.csv("animali.csv", sep = "-", header = TRUE)
 
-     **5.2** Quanto vale la percentuale di devianza spiegata?
+# Controllo veloce
+str(animali)
+head(animali)
 
-     **5.3** Costruire uno scatterplot delle variabili `Altezza` e `Peso` e aggiungere, in rosso, la linea di regressione ottenuta;
+# Calcolo della devianza di Peso
+devianza_peso <- sum((animali$Peso - mean(animali$Peso))^2)
+devianza_peso
+```
 
-     **5.4** Quale delle seguenti affermazioni è corretta?
+## 💥 Risposta
 
--   [ ] un aumento di 1cm di altezza è associato ad un aumento medio del peso di circa 0.59kg
+La **devianza** della variabile `Peso` è: **43915.74**
 
--   [ ] un aumento di 1cm di altezza provoca sempre un aumento del peso di circa 0.59kg
+La devianza rappresenta la **somma degli scarti quadratici** di ogni osservazione dalla media campionaria:
 
--   [ ] un aumento di 1kg di peso è associatio ad un aumento medio dell'altezza di 0.59cm
+$$ \text{Devianza} = \sum_{i=1}^{n} (Peso_i - \bar{Peso})^2 $$.
 
--   [ ] all'aumentare del peso l'altezza diminuisce in media di 0.59kg
 
-     **5.5** Quale delle seguenti affermazioni è corretta osservando il grafico Residuals vs Fitted?
+___
+     **Punto 2.** Standardizzare le variabili quantitative e salvarle in un oggetto `DataScaled`, poi calcolare la matrice di covarianza delle nuove variabili. Quale coppia presenta la covarianza maggiore?
 
--   [ ] una dispersione casuale dei punti attorno a 0 suggerisce che l'assunzione di linearità sia plausibile
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+dati <- read.csv("animali.csv", sep = "-")
 
--   [ ] una dispersione casuale dei punti attorno a 0 indica che il modello è perfetto
+# Seleziono le variabili quantitative
+variabili_quant <- dati[, c("Peso", "Altezza", "Eta", "OreSonno")]
 
--   [ ] i residui devono sempre essere tutti positivi
+# Calcolo la matrice di correlazione (su dati standardizzati = covarianza)
+matrice_cor <- cor(variabili_quant)
+matrice_cor
 
--   [ ] se i residui sono vicini a 0, allora $R^2=1$
+# Trovo la coppia con correlazione maggiore (esclusa la diagonale)
+matrice_senza_diag <- matrice_cor
+diag(matrice_senza_diag) <- NA
 
-     **5.6** Il peso previsto per un animale con altezza pari a 180cm vale circa:
+# Indice del massimo in valore assoluto
+indice_max <- which.max(abs(matrice_senza_diag))
+riga_max <- row(matrice_senza_diag)[indice_max]
+colonna_max <- col(matrice_senza_diag)[indice_max]
 
--   [ ] 59.2kg
+# Stampo il risultato
+cat("La coppia con covarianza maggiore è:", 
+    rownames(matrice_cor)[riga_max], "e", 
+    colnames(matrice_cor)[colonna_max], "\n")
+cat("Covarianza =", matrice_cor[riga_max, colonna_max], "\n")
+```
 
--   [ ] 102kg
+## 💥 Risposta
 
--   [ ] 175.4kg
+- **Matrice di correlazione** (su dati standardizzati = covarianza):
 
--   [ ] 82.8kg
+|           | Peso | Altezza | Eta | OreSonno |
+|-----------|------|---------|-----|----------|
+| **Peso** | 1.0000 | 0.9099 | 0.0718 | -0.0403 |
+| **Altezza** | 0.9099 | 1.0000 | 0.0920 | -0.0556 |
+| **Eta** | 0.0718 | 0.0920 | 1.0000 | -0.6903 |
+| **OreSonno** | -0.0403 | -0.0556 | -0.6903 | 1.0000 |
 
-**6.** Considerando le sole variabili quantitative standardizzate del dataset contenute nell'oggetto `DataScaled` e applicare l'algoritmo K-means con $k=3$:
+- **La coppia con covarianza maggiore** è: **Altezza** e **Peso** con covarianza = **0.9099**
+
+
+___
+     **Punto 3.** Calcolare la statistica $\chi^2$ per valutare l'associazione tra `Sesso` e `Domestico`; possiamo concludere che tra le due variabili sono in qualche modo associate? Perché?
+
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset 
+dati <- read.csv("animali.csv", sep = "-")
+
+# Tabella di contingenza
+tabella <- table(dati$Sesso, dati$Domestico)
+
+# Test chi-quadrato
+test_chi <- chisq.test(tabella)
+
+# Output del test
+test_chi
+
+```
+
+## 💥 Risposta
+
+**Tabella di contingenza**:
+
+|           | Domestico = No | Domestico = Si |
+|-----------|---------------|----------------|
+| **Sesso = F** | 23 | 73 |
+| **Sesso = M** | 20 | 84 |
+
+
+**Test χ²**:
+
+- χ² = **2.009**
+- df = **1**
+- p-value = **0.156**
+
+
+**Conclusione**: Il p-value è **maggiore di 0.05**, quindi **non possiamo rifiutare l'ipotesi di indipendenza** tra `Sesso` e `Domestico`. Le due variabili **non sono associate** in modo statisticamente significativo.
+
+
+___
+**Esercizio 4.** Creare una nuova variabile ottenuta dal prodotto logico di `Specie` e `Domestico`. Quale combinazione presenta la mediana di `Peso` più elevata?
+
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset 
+dati <- read.csv("animali.csv", sep = "-")
+
+# Creo la nuova variabile combinando Specie e Domestico
+dati$Specie_Domestico <- interaction(dati$Specie, dati$Domestico, sep = "_")
+
+# Calcolo la mediana di Peso per ogni combinazione
+mediane <- tapply(dati$Peso, dati$Specie_Domestico, median)
+
+# Stampo tutte le mediane
+mediane
+
+# Trovo la combinazione con mediana massima
+combinazione_max <- names(mediane)[which.max(mediane)]
+mediana_max <- max(mediane)
+
+cat("Combinazione con mediana più elevata:", combinazione_max, "\n")
+cat("Mediana =", mediana_max, "\n")
+```
+
+## 💥 Risposta
+
+**Mediane di `Peso` per combinazione di `Specie` e `Domestico`**:
+
+| Combinazione | Mediana Peso (kg) |
+|--------------|-------------------|
+| Cane_No      | **33.00** |
+| Cane_Si      | 30.00 |
+| Volpe_No     | 20.30 |
+| Volpe_Si     | 11.90 |
+| Gatto_No     | 10.80 |
+| Gatto_Si     | 12.85 |
+| Coniglio_No  | 4.60 |
+| Coniglio_Si  | 8.10 |
+
+**La combinazione con mediana di `Peso` più elevata** è: **Cane_No** (cani non domestici) con mediana = **33.00 kg**
+
+
+___
+**Esercizio 5.** Stimare una regressione lineare semplice avente come variabile di risposta `Peso` e come predittore `Altezza` e salvarla nell'oggetto `modello`:
+
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset 
+dati <- read.csv("animali.csv", sep = "-")
+
+# Modello di regressione lineare
+modello <- lm(Peso ~ Altezza, data = dati)
+
+# Output del modello
+summary(modello)
+
+```
+
+___
+     **Punto 1** La variabile `Altezza` sembra essere significativa? Da cosa possiamo concluderlo?
+
+## 💥 Risposta:
+
+Sì, la variabile **Altezza** è **altamente significativa**.
+
+**Motivazione**:
+
+- Il p-value associato al coefficiente di `Altezza` è **< 2e-16**, quindi **inferiore a 0.001**.
+- L'ipotesi nulla (coefficiente = 0) viene **rifiutata** con elevata significatività.
+- Inoltre il **test F** del modello ha p-value < 2.2e-16, confermando la significatività complessiva.
+
+
+___
+     **Punto 2** Quanto vale la percentuale di devianza spiegata?
+
+## 💥 Risposta:
+
+La **percentuale di devianza spiegata** è: **82.79%**
+
+- **R² = 0.8279**
+- L'**82.79%** della variabilità di `Peso` è spiegata da `Altezza`.
+- **R² aggiustato** = 0.8273
+
+
+___
+     **Punto 3** Costruire uno scatterplot delle variabili `Altezza` e `Peso` e aggiungere, in rosso, la linea di regressione ottenuta;
+
+## ✏️ Svolgimento:
+```{r}
+# Scatterplot con retta di regressione
+plot(dati$Altezza, dati$Peso,
+     xlab = "Altezza (cm)", ylab = "Peso (kg)",
+     main = "Relazione tra Altezza e Peso",
+     pch = 19, col = "steelblue")
+abline(modello, col = "red", lwd = 2)
+```
+
+## 💥 Risposta:
+
+**Scatterplot** di `Peso` vs `Altezza` con retta di regressione:
+
+- **Asse x**: Altezza (cm)
+- **Asse y**: Peso (kg)
+- **Punti**: osservazioni in colore blu
+- **Retta rossa**: retta di regressione stimata
+
+Il grafico mostra una **relazione lineare positiva** tra altezza e peso: all'aumentare dell'altezza, il peso tende ad aumentare. I punti sono distribuiti intorno alla retta rossa con una dispersione moderata, indicando che la retta di regressione descrive bene la relazione tra le due variabili.
+
+
+___
+
+     **Punto 4** Quale delle seguenti affermazioni è corretta?
+
+-   [V] un aumento di 1cm di altezza è associato ad un aumento medio del peso di circa 0.59kg
+
+-   [F] un aumento di 1cm di altezza provoca sempre un aumento del peso di circa 0.59kg
+
+-   [F] un aumento di 1kg di peso è associatio ad un aumento medio dell'altezza di 0.59cm
+
+-   [F] all'aumentare del peso l'altezza diminuisce in media di 0.59kg
+
+## 💥 Risposta:
+
+**Verifica delle affermazioni**:
+
+- **a.** ✅ *"un aumento di 1cm di altezza è associato ad un aumento medio del peso di circa 0.59kg"* → **VERA**.   
+Il coefficiente di `Altezza` è **0.59213**, che arrotondato è circa **0.59**. L'interpretazione corretta è: per ogni cm in più di altezza, il peso aumenta in media di 0.59 kg.
+
+- **b.** ❌ *"un aumento di 1cm di altezza provoca sempre un aumento del peso di circa 0.59kg"* → **FALSA**.   
+La regressione descrive un effetto **medio**, non deterministico. La parola "sempre" rende l'affermazione errata.
+
+- **c.** ❌ *"un aumento di 1kg di peso è associato ad un aumento medio dell'altezza di 0.59cm"* → **FALSA**.   
+Scambia il ruolo delle variabili: il modello è `Peso ~ Altezza`, quindi `Altezza` è il predittore (X) e `Peso` è la risposta (Y). L'interpretazione corretta è X → Y, non Y → X.
+
+- **d.** ❌ *"all'aumentare del peso l'altezza diminuisce in media di 0.59kg"* → **FALSA**.   
+La relazione tra peso e altezza è **positiva** (coefficiente 0.59 > 0), non negativa.
+
+**Risposta corretta**: **a.**
+
+
+___
+     **Punto 5** Quale delle seguenti affermazioni è corretta osservando il grafico Residuals vs Fitted?
+
+-   [V] una dispersione casuale dei punti attorno a 0 suggerisce che l'assunzione di linearità sia plausibile
+
+-   [F] una dispersione casuale dei punti attorno a 0 indica che il modello è perfetto
+
+-   [F] i residui devono sempre essere tutti positivi
+
+-   [F] se i residui sono vicini a 0, allora $R^2=1$
+
+## ✏️ Svolgimento:
+```{r}
+# Grafico dei residui vs valori stimati
+plot(modello, which = 1)
+```
+
+## 💥 Risposta
+
+**Verifica delle affermazioni**:
+
+- **a.** ✅ *"una dispersione casuale dei punti attorno a 0 suggerisce che l'assunzione di linearità sia plausibile"* → **VERA**.  
+Se i residui sono distribuiti casualmente intorno allo zero senza un pattern evidente, significa che il modello lineare cattura adeguatamente la relazione tra X e Y.
+
+- **b.** ❌ *"una dispersione casuale dei punti attorno a 0 indica che il modello è perfetto"* → **FALSA**.  
+Indica solo che le assunzioni di linearità e omoschedasticità sono plausibili, non che il modello sia perfetto. Esistono comunque residui (differenze tra osservato e stimato).
+
+- **c.** ❌ *"i residui devono sempre essere tutti positivi"* → **FALSA**.  
+I residui sono per definizione distribuiti intorno allo zero, quindi possono essere sia positivi che negativi. La loro somma (o media) è zero.
+
+- **d.** ❌ *"se i residui sono vicini a 0, allora R² = 1"* → **FALSA**.  
+Residui vicini a zero indicano un buon adattamento, ma R² = 1 solo se tutti i residui sono esattamente zero (modello perfetto), cosa che nei dati reali non accade.
+
+**Risposta corretta**: **a.**
+
+
+___
+     **Punto 6** Il peso previsto per un animale con altezza pari a 180cm vale circa:
+
+-   [F] 59.2kg
+
+-   [V] 102kg
+
+-   [F] 175.4kg
+
+-   [F] 82.8kg
+
+## ✏️ Svolgimento:
+```{r}
+# Calcolo manuale con i coefficienti del modello
+previsto <- coef(modello)[1] + coef(modello)[2] * 180
+
+# Oppure con predict()
+predict(modello, newdata = data.frame(Altezza = 180))
+
+previsto
+```
+
+## 💥 Risposta 
+
+**Verifica delle affermazioni**:
+
+- **a.** ❌ *"59.2kg"* → **FALSA**. Sottostima di circa 43 kg.
+
+- **b.** ✅ *"102kg"* → **VERA**. Il peso previsto è **102.02 kg**, che arrotondato è 102 kg.
+
+- **c.** ❌ *"175.4kg"* → **FALSA**. Sovrastima di circa 73 kg.
+
+- **d.** ❌ *"82.8kg"* → **FALSA**. Sottostima di circa 19 kg.
+
+**Calcolo**:
+
+$$ \text{Peso} = -4.56066 + 0.59213 \times 180 = \textbf{102.02 kg} $$
+
+**Risposta corretta**: **b.**
+
+
+___
+**Esercizio 6.** Considerando le sole variabili quantitative standardizzate del dataset contenute nell'oggetto `DataScaled` e applicare l'algoritmo K-means con $k=3$:
 
      **6.1** Riportare, attraverso un'istruzione di R, i centroidi ottenuti (nella scala originale);
 
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+dati <- read.csv("animali.csv", sep = "-")
+
+# Seleziono le variabili quantitative
+variabili_quant <- dati[, c("Peso", "Altezza", "Eta", "OreSonno")]
+
+# Standardizzo
+DataScaled <- scale(variabili_quant)
+
+# K-means con k=3
+set.seed(123)
+kmeans_result <- kmeans(DataScaled, centers = 3, nstart = 25)
+
+# Aggiungo il cluster al dataset
+dati$cluster <- kmeans_result$cluster
+
+# Calcolo le medie originali per cluster con aggregate()
+centroidi_originali <- aggregate(cbind(Peso, Altezza, Eta, OreSonno) ~ cluster, 
+                                 data = dati, FUN = mean)
+
+centroidi_originali
+
+```
+## 💥 Risposta
+
+**Centroidi (nella scala originale)** ottenuti con `aggregate()`:
+
+| Cluster | Peso (kg) | Altezza (cm) | Eta (anni) | OreSonno |
+|---------|-----------|--------------|------------|----------|
+| 1       | 12.78     | 30.08        | 11.67      | 12.23    |
+| 2       | 13.20     | 29.75        | 4.29       | 14.42    |
+| 3       | 35.61     | 66.93        | 9.32       | 13.11    |
+
+**Osservazioni**:
+
+- **Cluster 3**: animali di **grossa taglia** (peso e altezza elevati).
+- **Cluster 1** e **2**: animali di **piccola taglia** (peso e altezza bassi).
+- **Cluster 2**: animali **più giovani** (4.29 anni) e con **più ore di sonno** (14.42 ore).
+- **Cluster 1**: animali **più anziani** (11.67 anni) e con **meno ore di sonno** (12.23 ore).
+
+
+___
      **6.2** Quanti animali appartengono a ciascun cluster?
 
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset
+dati <- read.csv("animali.csv", sep = "-")
+
+# Seleziono le variabili quantitative
+variabili_quant <- dati[, c("Peso", "Altezza", "Eta", "OreSonno")]
+
+# Standardizzo
+DataScaled <- scale(variabili_quant)
+
+# K-means con k=3
+set.seed(123)
+kmeans_result <- kmeans(DataScaled, centers = 3, nstart = 25)
+
+# Numerosità dei cluster
+table(kmeans_result$cluster)
+```
+## 💥 Risposta:
+
+**Numerosità dei cluster**:
+
+| Cluster | Frequenza |
+|---------|-----------|
+| 1       | 116       |
+| 2       | 113       |
+| 3       | 71        |
+
+- I cluster 1 e 2 sono i più numerosi (116 e 113 animali), mentre il cluster 3 è il meno numeroso (71 animali).
+
+
+___
      **6.3** Descrivere brevemente le caratteristiche dei cluster ottenuti;
 
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+dati <- read.csv("animali.csv", sep = "-")
+
+# Seleziono le variabili quantitative
+variabili_quant <- dati[, c("Peso", "Altezza", "Eta", "OreSonno")]
+
+# Standardizzo
+DataScaled <- scale(variabili_quant)
+
+# K-means con k=3
+set.seed(123)
+kmeans_result <- kmeans(DataScaled, centers = 3, nstart = 25)
+
+# Aggiungo i cluster al dataset
+dati$cluster <- kmeans_result$cluster
+
+# Medie delle variabili quantitative per cluster (scala originale)
+aggregate(cbind(Peso, Altezza, Eta, OreSonno) ~ cluster, data = dati, FUN = mean)
+
+# Distribuzione di Specie per cluster
+table(dati$Specie, dati$cluster)
+
+# Distribuzione di Domestico per cluster
+table(dati$Domestico, dati$cluster)
+
+```
+
+## 💥 Risposta:
+
+
+**Caratteristiche dei cluster**:
+
+| Cluster | Peso (kg) | Altezza (cm) | Eta (anni) | OreSonno | Specie prevalente | Domestico |
+|---------|-----------|--------------|------------|----------|-------------------|-----------|
+| **1**   | 12.78     | 30.08        | 11.67      | 12.23    | Gatti (59) + Conigli (25) | Prevalentemente Si (94) |
+| **2**   | 13.20     | 29.75        | 4.29       | 14.42    | Gatti (55) + Conigli (31) | Prevalentemente Si (97) |
+| **3**   | 35.61     | 66.93        | 9.32       | 13.11    | Cani (68) | Prevalentemente Si (61) |
+
+**Descrizione**:
+
+- **Cluster 1**: 
+  - Animali di **piccola taglia** (peso ~12.8 kg, altezza ~30 cm),  
+  - **più anziani** (età media 11.7 anni)   
+  - **meno ore di sonno** (12.2 ore).  
+Composto principalmente da **gatti** e **conigli**, per lo più **domestici**.  
+
+- **Cluster 2**:   
+  - Animali di **piccola taglia** (peso ~13.2 kg, altezza ~29.7 cm),  
+  - **più giovani** (età media 4.3 anni)   
+  - **più ore di sonno** (14.4 ore).   
+Composto principalmente da **gatti** e **conigli**, per lo più **domestici**.  
+
+- **Cluster 3**:   
+  - Animali di **grossa taglia** (peso ~35.6 kg, altezza ~66.9 cm),  
+  - **età intermedia** (9.3 anni)  
+  - **sonno medio** (13.1 ore).  
+Composto prevalentemente da **cani**, per lo più **domestici**.  
+
+
+___
      **6.4** Rappresentare con uno scatterplot le variabili `Altezza` e `Peso` e colorarle rispetto all'appartenenza ai cluster ottenuti.
+
+## ✏️ Svolgimento
+```{r}
+# Carico il dataset
+dati <- read.csv("animali.csv", sep = "-")
+
+# Seleziono le variabili quantitative
+variabili_quant <- dati[, c("Peso", "Altezza", "Eta", "OreSonno")]
+
+# Standardizzo
+DataScaled <- scale(variabili_quant)
+
+# K-means con k=3
+set.seed(123)
+kmeans_result <- kmeans(DataScaled, centers = 3, nstart = 25)
+
+# Aggiungo i cluster al dataset
+dati$cluster <- as.factor(kmeans_result$cluster)
+
+# Scatterplot
+plot(dati$Altezza, dati$Peso,
+     col = dati$cluster,
+     pch = 19,
+     xlab = "Altezza (cm)",
+     ylab = "Peso (kg)",
+     main = "Scatterplot Peso vs Altezza per cluster")
+
+# Legenda
+legend("topleft",
+       legend = c("Cluster 1", "Cluster 2", "Cluster 3"),
+       col = 1:3,
+       pch = 19,
+       title = "Cluster")
+
+```
+
+## 💥 Risposta:
+
+**Scatterplot** di `Altezza` vs `Peso` con colori in base al cluster:
+
+- **Asse x**: Altezza (cm)
+- **Asse y**: Peso (kg)
+- **Colori**:
+  - **Cluster 1** (nero): animali di piccola taglia, peso moderato
+  - **Cluster 2** (rosso): animali di piccola taglia, peso moderato
+  - **Cluster 3** (verde): animali di grossa taglia (peso e altezza elevati)
+
+**Osservazioni**:
+
+- I **cluster 1 e 2** si sovrappongono nella zona bassa del grafico (animali piccoli), ma si distinguono per età e ore di sonno (cluster 2 più giovani e dormiglioni).
+- Il **cluster 3** è ben separato e occupa la zona alta del grafico (animali grandi, principalmente cani).
+- La separazione tra i cluster è netta per quanto riguarda peso e altezza, confermando che il K-means ha individuato gruppi ben distinti.

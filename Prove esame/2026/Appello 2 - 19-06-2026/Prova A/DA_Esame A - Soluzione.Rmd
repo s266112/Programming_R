@@ -4,9 +4,9 @@ subtitle: '19/06/2026 - Tempo a disposizione 2 ore'
 author: "Alessio Matessi - SM321657"
 date: "Soluzione risolta: 01 - 07 - 2026"
 output: 
+  html_document: default
   pdf_document:
     latex_engine: xelatex
-  html_document: default
 ---
 
 Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
