@@ -1,5 +1,5 @@
 ---
-title: "Esercitazione Data Analytics"
+title: "TUTORATO 6 - Esercitazione Data Analytics"
 author: "Alessio Matessi - SM321657"
 date: "Soluzione risolta: 03 - 07 - 2026"
 output: 
