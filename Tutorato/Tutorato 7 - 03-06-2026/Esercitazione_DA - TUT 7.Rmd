@@ -1,0 +1,692 @@
+---
+title: "TUTORATO 7 -  Esercitazione Data Analytics"
+author: "Alessio Matessi - SM321657"
+date: "Soluzione risolta: 06 - 07 - 2026"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+---
+
+Riportare di seguito i comandi e le risposte necessarie allo svolgimento dell'esame. **I file html e Rmd entrambi vanno consegnati tramite moodle**.
+
+  1. Accertarsi che il file compili correttamente prima di iniziare l'esame
+  2. Compilare (e salvare!) spesso
+  3. Se non si riesce a risolvere l'errore di compilazione, utilizzare `eval = F` nel chunk (si veda l'esempio dove è stata inclusa la tilde per vostra convenienza)
+  
+```{r, eval = FALSE}
+    ~
+```
+
+
+### PARTE 1: R
+
+**Esercizio 1**:Scrivere una funzione che prenda in input tre vettori numerici della stessa lunghezza: `pressione`, `colesterolo` e `glicemia`.
+
+La funzione, denominata `classifica_pazienti()` deve verificare che gli input siano corretti e poi:
+
+- **Punto 1**:   creare una variabile `Rischio` con tre livelli:
+
+    -   *Basso* se `pressione` è minore di 130, `colesterolo` è minore di 200 e `glicemia` è minore di 100;
+
+    -   *Medio* se almeno una ed al massimo una è fuori da una delle soglie fissate al punto precedente;
+
+    -   *Alto* se due condizioni o più sono fuori dalle medesime soglie.
+    
+    
+- **Punto 2**:   Restituire una lista composta da un dataframe contenente le variabili originali e la nuova variabile `Rischio` e dalla tabella delle frequenze assolute di `Rischio`
+
+## ✏️ Svolgimento:
+
+```{r}
+
+## - PUNTO 1 - 
+
+# Scrivo la funzione che classifica i pazienti
+classifica_pazienti <- function(pressione, colesterolo, glicemia) 
+{
+  
+  # Controllo che siano vettori numerici
+  if (!is.numeric(pressione) ||
+      !is.numeric(colesterolo) || 
+      !is.numeric(glicemia)) 
+  {
+    stop("Errore: tutti gli input devono essere vettori numerici")
+  }
+  
+  # Controllo che abbiano stessa lunghezza
+  if (length(pressione) != length(colesterolo) ||
+      length(pressione) != length(glicemia))
+  {
+    stop("Errore: i vettori devono avere la stessa lunghezza")
+  }
+  
+  # In R TRUE=1 e FALSE=0. Sommo le condizioni per contare quante soglie sono superate
+  out <- (pressione >= 130) + (colesterolo >= 200) + (glicemia >= 100)
+  
+  # Classificazione del rischio
+  Rischio <- ifelse(out == 0, "Basso", 
+                    ifelse(out == 1, "Medio", "Alto"))
+  
+  # Trasformo in factor ordinato (Basso < Medio < Alto)
+  Rischio <- factor(Rischio, levels = c("Basso", "Medio", "Alto"), ordered = TRUE)
+  
+  
+  ## - PUNTO 2 - 
+  
+  # Creo il dataframe con le variabili originali + Rischio
+  df <- data.frame(pressione, colesterolo, glicemia, Rischio)
+  
+  # Tabella delle frequenze assolute di Rischio
+  tabella <- table(Rischio)
+  
+  # Restituisco la lista
+  return(list(dataframe = df, frequenze = tabella))
+}
+
+
+# Test della funzione
+pressione_test <- c(120, 135, 145, 125)
+colesterolo_test <- c(180, 210, 220, 190)
+glicemia_test <- c(95, 98, 110, 105)
+
+risultato_test <- classifica_pazienti(pressione_test, colesterolo_test, glicemia_test)
+
+# Stampo il dataframe
+risultato_test$dataframe
+
+# Stampo le frequenze
+risultato_test$frequenze
+```
+
+
+## 💥 Risposta
+
+**Test con vettori di esempio**:
+
+| pressione | colesterolo | glicemia | Rischio |
+|-----------|-------------|----------|---------|
+| 120       | 180         | 95       | Basso   |
+| 135       | 210         | 98       | Alto    |
+| 145       | 220         | 110      | Alto    |
+| 125       | 190         | 105      | Medio   |
+
+**Tabella frequenze assolute di Rischio**:
+
+| Rischio | Frequenza |
+|---------|-----------|
+| Basso   | 1         |
+| Medio   | 1         |
+| Alto    | 2         |
+
+- La funzione controlla correttamente gli input.
+- La variabile `Rischio` viene classificata secondo le regole richieste.
+- La lista restituita contiene il dataframe e la tabella delle frequenze.
+
+
+---
+### PARTE 2: Analisi dei Dati
+
+**Esercizio 2**: Si considerino i dati contenuti nel file `salute.csv`. Si tratta di un dataset composto da dati raccolti su 387 pazienti, in particolare 8 (`Eta`, `BMI`, `Pressione`, `Colesterolo`, `AttivitaFisica`, `Glicemia`, `Sesso`, `Fumatore`).
+
+- **Punto 1**: Calcolare media, mediana e deviazione standard della variabile `Pressione`;
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset
+dati <- read.csv("salute.csv", sep = "|")
+
+# Preprocessing: rimuovo le righe con NA 
+dati <- na.omit(dati)
+
+# Punto 1: media, mediana e deviazione standard di Pressione
+media_pressione <- mean(dati$Pressione)
+mediana_pressione <- median(dati$Pressione)
+sd_pressione <- sd(dati$Pressione)
+
+# Stampo i risultati
+media_pressione
+mediana_pressione
+sd_pressione
+
+```
+
+## 💥 Risposta
+
+**Statistiche descrittive della variabile `Pressione`** (dopo rimozione NA):
+
+| Statistica | Valore |
+|------------|--------|
+| **Media** | 145.72 mmHg |
+| **Mediana** | 146 mmHg |
+| **Deviazione standard** | 15.89 mmHg |
+
+La pressione media dei pazienti è di circa **145.7 mmHg**, con una mediana molto simile (**146 mmHg**), indicando una distribuzione approssimativamente simmetrica. La deviazione standard di **15.89 mmHg** mostra una variabilità moderata intorno alla media.
+
+___
+- **Punto 2**: Costruire un boxplot di `Pressione` rispetto a `Fumatore`. Cosa si osserva?
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA 
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Boxplot di Pressione rispetto a Fumatore
+boxplot(Pressione ~ Fumatore,
+        data = dati,
+        col = c("lightblue", "salmon"),
+        main = "Pressione per Fumatore",
+        xlab = "Fumatore",
+        ylab = "Pressione (mmHg)")
+
+```
+
+## 💥 Risposta
+
+**Osservazioni**:
+
+- I **fumatori** (Si) presentano una **pressione mediana più alta** rispetto ai non fumatori (No).
+- La **variabilità** (larghezza dei box) è simile tra i due gruppi.
+- Nel gruppo dei **non fumatori** è presente un **outlier** (un punto oltre il baffo superiore), indicando un individuo che non fuma ma ha pressione molto alta.
+- Nel gruppo dei **fumatori** non si osservano outlier evidenti.
+
+**Conclusione**: I fumatori tendono ad avere pressione più alta rispetto ai non fumatori. La presenza di un outlier nel gruppo dei non fumatori suggerisce che alcuni individui si discostano dal comportamento medio.
+
+___
+- **Punto 3**: Calcolare la matrice di correlazione tra le variabili quantitative. Quale coppia presenta la correlazione più alta?
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Seleziono le variabili quantitative
+dati_quant <- dati[, c("Eta", "BMI", "AttivitaFisica", "Pressione", "Colesterolo", "Glicemia")]
+
+# Matrice di correlazione
+matrice_cor <- cor(dati_quant)
+matrice_cor
+```
+
+## 💥 Risposta
+
+**Matrice di correlazione** tra le variabili quantitative:
+
+|               | Eta    | BMI    | AttivitaFisica | Pressione | Colesterolo | Glicemia |
+|---------------|--------|--------|----------------|-----------|-------------|----------|
+| **Eta**       | 1.0000 | 0.3373 | -0.0205        | 0.7150    | 0.7468      | 0.6262   |
+| **BMI**       | 0.3373 | 1.0000 | -0.2455        | 0.4190    | 0.4150      | 0.4375   |
+| **AttivitaFisica** | -0.0205 | -0.2455 | 1.0000     | -0.0256   | -0.0676     | -0.3055  |
+| **Pressione** | 0.7150 | 0.4190 | -0.0256        | 1.0000    | 0.5880      | 0.4844   |
+| **Colesterolo** | 0.7468 | 0.4150 | -0.0676        | 0.5880    | 1.0000      | 0.4966   |
+| **Glicemia**  | 0.6262 | 0.4375 | -0.3055        | 0.4844    | 0.4966      | 1.0000   |
+
+**La coppia con correlazione più alta** è: **Eta** e **Colesterolo** con correlazione = **0.7468**
+
+**Osservazioni**:
+
+- `Eta` ha correlazioni positive forti con `Colesterolo` (0.75), `Pressione` (0.71) e `Glicemia` (0.63).
+- `BMI` ha correlazioni moderate con tutte le variabili (0.34-0.44).
+- `AttivitaFisica` ha correlazioni negative con `BMI` (-0.25) e `Glicemia` (-0.31).
+- `Pressione` e `Colesterolo` sono moderatamente correlate (0.59).
+
+___
+- **Punto 4**: Calcolare il test $\chi^2$ tra `Sesso` e `Fumatore`. Le due variabili risultano associate? Perché?
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA 
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Tabella di contingenza Sesso vs Fumatore
+tabella <- table(dati$Sesso, dati$Fumatore)
+
+# Test chi-quadrato
+test_chi <- chisq.test(tabella)
+
+# Output del test
+test_chi
+
+```
+
+## 💥 Risposta
+
+**Tabella di contingenza**:
+
+|           | Fumatore = No | Fumatore = Si |
+|-----------|---------------|----------------|
+| **Sesso = F** | 104 | 52 |
+| **Sesso = M** | 120 | 49 |
+
+**Test χ²**:
+
+- χ² = **0.7396**
+- df = **1**
+- p-value = **0.3898**
+
+**Conclusione**:
+
+Il p-value è **maggiore di 0.05**, quindi **non possiamo rifiutare l'ipotesi di indipendenza** tra `Sesso` e `Fumatore`. Le due variabili **non risultano associate** in modo statisticamente significativo: il fatto di essere maschio o femmina non sembra influenzare la probabilità di essere fumatore.
+
+___
+- **Punto 5**: Stimare il modello di regressione lineare con variabile di risposta `Pressione` e come regressori `Eta`, `BMI`, `Fumatore`:
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Modello di regressione lineare
+modello <- lm(Pressione ~ Eta + BMI + Fumatore, data = dati)
+
+# Output del modello
+summary(modello)
+
+```
+       **5.1** Quali variabili sono statisticamente significative?
+  
+## 💥 Risposta:
+
+**Modello di regressione lineare**:
+
+$$ \text{Pressione} = 92.08 + 0.55 \cdot \text{Eta} + 1.10 \cdot \text{BMI} + 7.10 \cdot \text{FumatoreSi} $$
+
+
+**Tutte le variabili sono statisticamente significative**:
+
+| Variabile | p-value | Significatività |
+|-----------|---------|-----------------|
+| **Eta** | < 2e-16 | *** |
+| **BMI** | 1.01e-07 | *** |
+| **FumatoreSi** | 1.84e-08 | *** |
+
+Tutte hanno p-value **< 0.001**, quindi contribuiscono in modo significativo a spiegare la variabilità della pressione.
+
+
+___
+       **5.2** Intepretare il coefficiente associato a `FumatoreSi`;
+
+## 💥 Risposta:
+
+- **Coefficiente stimato**: 7.10
+- **Significatività**: p-value = 1.84e-08 (***)
+
+**Interpretazione**:
+
+A parità di **età** e **BMI**, un paziente **fumatore** ha una pressione **mediamente più alta di 7.10 mmHg** rispetto a un paziente **non fumatore**.
+
+- La categoria di riferimento (baseline) è `Fumatore = No`.
+- Il coefficiente positivo indica che il fumo è associato a un **aumento della pressione**.
+- L'effetto è **statisticamente significativo** (p-value < 0.001).
+
+
+___
+       **5.3** Calcolare la percentuale di devianza spiegata dal modello;
+
+## 💥 Risposta:
+
+- **R² = 0.5895** → il modello spiega il **58.95%** della variabilità di `Pressione`.
+
+- **R² aggiustato = 0.5856** (simile a R², indica che il modello non ha predittori ridondanti).
+
+- Il modello è **complessivamente significativo** (p-value < 2.2e-16)
+
+
+___
+       **5.4** La pressione per un paziente fumatore con un'età di 50 anni ed un BMI di 27 prevista dal modello è circa:
+
+-   [**F** ] 150 mmHg
+
+-   [**F** ] 170 mmHg
+
+-   [**V**] 157 mmHg
+
+-   [**F**] 162 mmHg
+
+## ✏️ Svolgimento:
+```{r}
+# Previsione per un paziente fumatore con Eta=50 e BMI=27
+predict(modello, newdata = data.frame(Eta = 50, BMI = 27, Fumatore = "Si"))
+```
+
+## 💥 Risposta:
+
+**Verifica delle affermazioni**:
+
+- **a.**: "150 mmHg"* → **FALSA**. Sottostima di circa 6.7 mmHg.
+
+- **b.**: "170 mmHg"* → **FALSA**. Sovrastima di circa 13.3 mmHg.
+
+- **c.**: "157 mmHg"* → **VERA**. Il peso previsto è **156.67 mmHg**, che arrotondato è 157 mmHg.
+
+- **d.**: "162 mmHg"* → **FALSA**. Sovrastima di circa 5.3 mmHg.
+
+**Calcolo**:
+
+$$ \text{Pressione} = 92.08 + 0.55 \times 50 + 1.10 \times 27 + 7.10 \times \text{FumatoreSi} = \textbf{156.67 mmHg} $$
+
+**Risposta corretta**: **c. 157 mmHg**
+
+
+___
+       **5.5** Stimare il modello che ha la stessa variabile di risposta ma come predittore e l'interazione tra `BMI` e `Fumatore`; possiamo dire che l'effetto del BMI sulla pressione cambia tra fumatori e non fumatori? Perché?
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Modello con interazione tra BMI e Fumatore
+modello_int <- lm(Pressione ~ BMI * Fumatore, data = dati)
+
+# Output del modello
+summary(modello_int)
+```
+
+## 💥 Risposta 
+
+**Modello con interazione tra BMI e Fumatore**:
+
+$$ \text{Pressione} = 99.06 + 2.15 \cdot \text{BMI} + 0.78 \cdot \text{FumatoreSi} + 0.31 \cdot (\text{BMI} \times \text{FumatoreSi}) $$
+
+**Interpretazione del termine di interazione**:
+
+- Il coefficiente di `BMI:FumatoreSi` è **0.3104** con p-value = **0.569**.
+- Poiché il p-value è **maggiore di 0.05**, il termine di interazione **non è statisticamente significativo**.
+
+**Conclusione**:
+
+**Non possiamo dire che l'effetto del BMI sulla pressione cambi tra fumatori e non fumatori**. L'effetto del BMI è simile nei due gruppi.
+
+**Confronto con il modello precedente**:
+
+| Modello | R² |
+|---------|-----|
+| Senza interazione (Eta + BMI + Fumatore) | 0.5895 |
+| Con interazione (BMI * Fumatore) | 0.2199 |
+
+Il modello senza interazione spiega molta più variabilità perché include anche l'**età**, che è il predittore più importante per la pressione.
+
+___
+       **5.6** Quale delle seguenti affermazioni è corretta?
+
+-   [**V**] Il termine `BMI:FumatoreSi` indica se l'effetto del BMI sulla pressione è diverso tra fumatori e non
+
+-   [**F**] Il termine `BMI:FumatoreSi` elimina l'effetto principale del BMI
+
+-   [**F**] Il termine `BMI:FumatoreSi` rappresenta la media del BMI nei fumatori
+
+-   [**F**] Il termine `BMI:FumatoreSi` indica la correlazione tra BMI e fumo
+
+
+## 💥 Risposta 
+
+**Verifica delle affermazioni**:
+
+- **a.**: *"Il termine `BMI:FumatoreSi` indica se l'effetto del BMI sulla pressione è diverso tra fumatori e non"* → **VERA**. Il termine di interazione misura proprio se la relazione tra BMI e pressione cambia a seconda del fatto che il paziente sia fumatore o meno.
+
+- **b.**: *"Il termine `BMI:FumatoreSi` elimina l'effetto principale del BMI"* → **FALSA**. Il termine di interazione si aggiunge all'effetto principale, non lo elimina. L'effetto principale del BMI rimane nel modello (coefficiente 2.15).
+
+- **c.**: *"Il termine `BMI:FumatoreSi` rappresenta la media del BMI nei fumatori"* → **FALSA**. Il termine di interazione è un prodotto tra due variabili, non una media. La media del BMI nei fumatori si calcola con `mean()`.
+
+- **d.**: *"Il termine `BMI:FumatoreSi` indica la correlazione tra BMI e fumo"* → **FALSA**. La correlazione tra BMI e fumo si calcola con `cor()`. Il termine di interazione misura l'effetto differenziale del BMI sulla pressione tra fumatori e non fumatori.
+
+**Risposta corretta**: **a.**
+
+___
+- **Punto 6**:Standardizzare le variabili quantitative del dataset e salvarle in un oggetto `DataScaled`;
+
+## ✏️ Svolgimento:
+```{r}
+# Standardizzo le variabili quantitative
+dati <- read.csv("salute.csv", sep="|")
+dati <- na.omit(dati)
+
+# Seleziono le variabili quantitative (escludo Sesso e Fumatore)
+variabili_quant <- dati[, c("Eta", "BMI", "AttivitaFisica", "Pressione", "Colesterolo", "Glicemia")]
+
+# Standardizzo (media 0, varianza 1)
+DataScaled <- scale(variabili_quant)
+
+# Mostro le prime righe per verifica
+head(DataScaled)
+```
+
+## 💥 Risposta
+
+Le variabili quantitative sono state standardizzate utilizzando la funzione `scale()`, che sottrae la media e divide per la deviazione standard di ciascuna variabile.
+
+Le prime righe del dataset standardizzato (`DataScaled`):
+
+|       | Eta    | BMI    | AttivitaFisica | Pressione | Colesterolo | Glicemia |
+|-------|--------|--------|----------------|-----------|-------------|----------|
+| 1     | -0.201 | -0.962 | 0.280          | -0.171    | 1.654       | -0.650   |
+| 2     | 0.878  | 1.149  | 1.430          | 0.647     | -0.022      | -0.021   |
+| 3     | -1.117 | 1.250  | -0.151         | -0.486    | 0.064       | -0.111   |
+| 5     | 0.392  | -0.326 | 0.136          | -0.800    | 0.150       | -0.111   |
+| 6     | 0.824  | -0.057 | -0.247         | 0.206     | 1.181       | 0.429    |
+| 7     | 0.446  | 0.211  | -0.151         | 1.087     | 0.838       | 0.609    |
+
+___
+- **Punto 7**:Applicare clustering gerarchico a `DataScaled` utilizzando il metodo di Ward:
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Seleziono le variabili quantitative
+dati_quant <- dati[, c("Eta", "BMI", "AttivitaFisica", "Pressione", "Colesterolo", "Glicemia")]
+
+# Standardizzo
+DataScaled <- scale(dati_quant)
+
+# Clustering gerarchico con Ward
+distanze <- dist(DataScaled, method = "euclidean")
+hcluster <- hclust(distanze, method = "ward.D2")
+
+```
+
+
+     **7.1** Rappresentare il dendrogramma;
+
+## ✏️ Svolgimento:
+```{r}
+# Dendrogramma
+plot(hcluster, labels = FALSE, main = "Dendrogramma - Metodo di Ward", 
+     xlab = "", sub = "", ylab = "Distanza")
+
+```
+
+## 💥 Risposta:
+
+**Osservazioni**:
+
+- Si osserva un **salto considerevole** nell'altezza di fusione intorno a **25-30**, il che suggerisce che i cluster uniti a quel livello sono molto diversi tra loro.
+- Le prime fusioni avvengono a bassa altezza, indicando che le osservazioni all'interno dei cluster sono molto simili.
+- La struttura del dendrogramma suggerisce che una soluzione con **2 cluster** potrebbe essere appropriata, ma per una scelta più precisa si può osservare il plot delle altezze.
+
+___
+     **7.2** Costruire il plot delle altezze e, rispetto a tale grafico, scegliere un numero appropriato di cluster e motivarne il perché;
+
+## ✏️ Svolgimento:
+```{r}
+# Plot delle altezze di fusione in ordine decrescente
+plot(sort(hcluster$height, decreasing = TRUE), type = "b",
+     main = "Altezze di fusione",
+     xlab = "Numero di cluster (passo di fusione)",
+     ylab = "Altezza")
+```
+
+## 💥 Risposta:
+
+**Osservazioni**:
+
+- L'altezza di fusione è molto bassa per i primi ~250 passi (distanze tra le osservazioni simili).
+- Si osserva un **salto considerevole** intorno a h ≈ 25 (dopo circa 250 passi), dove le altezze aumentano bruscamente.
+- Questo indica che i cluster uniti a quel livello sono molto diversi tra loro.
+
+**Scelta del numero di cluster**:
+
+- Il salto brusco intorno a h ≈ 25 suggerisce che il numero ottimale di cluster sia **2**.
+- Tagliando il dendrogramma a un'altezza di circa 25, si ottengono **2 cluster** ben separati.
+- Oltre questo punto, le fusioni avvengono a distanze molto maggiori, indicando che gli oggetti uniti sono troppo dissimili.
+
+**Motivazione**: il criterio del "salto" (o "elbow") nel plot delle altezze indica il punto in cui la dissimilarità tra i cluster aumenta drasticamente, suggerendo di fermarsi prima di quel salto.
+
+___
+     **7.3** Riportare la numerosità di ciascun gruppo ottenuto;
+
+## ✏️ Svolgimento:
+```{r}
+# Taglio l'albero per ottenere 2 cluster 
+cluster <- cutree(hcluster, k = 2)
+
+# Numerosità di ciascun cluster
+table(cluster)
+```
+
+## 💥 Risposta:
+
+**Numerosità dei cluster** (taglio a k = 2, altezza ≈ 25):
+
+| Cluster | Frequenza |
+|---------|-----------|
+| 1       | 151       |
+| 2       | 174       |
+
+I due cluster hanno numerosità simili: **151** osservazioni nel cluster 1 e **174** nel cluster 2. La suddivisione è bilanciata.
+
+
+___
+     **7.4** Descrivere brevemente le caratteristiche dei cluster ottenuti considerando le medie delle variabili quantitative.
+
+## ✏️ Svolgimento:
+```{r}
+# Aggiungo i cluster al dataset 
+dati$cluster <- cluster
+
+# Medie delle variabili quantitative per cluster
+aggregate(cbind(Eta, BMI, AttivitaFisica, Pressione, Colesterolo, Glicemia) ~ cluster, 
+          data = dati, FUN = mean)
+```
+
+## 💥 Risposta 
+
+**Caratteristiche dei cluster** (medie delle variabili quantitative):
+
+| Cluster | Eta (anni) | BMI | AttivitaFisica | Pressione (mmHg) | Colesterolo (mg/dL) | Glicemia (mg/dL) |
+|---------|------------|-----|----------------|------------------|---------------------|------------------|
+| **1**   | 67.34      | 21.86 | 5.26           | 156.64           | 234.21              | 107.01           |
+| **2**   | 38.17      | 19.64 | 4.99           | 136.25           | 199.30              | 94.35            |
+
+**Descrizione**:
+
+- **Cluster 1** (151 osservazioni): persone **più anziane** (età media 67 anni), con pressione, colesterolo e glicemia **più alti**.
+
+- **Cluster 2** (174 osservazioni): persone **più giovani** (età media 38 anni), con pressione, colesterolo e glicemia **più bassi**.
+
+**Conclusione**: i due cluster si distinguono principalmente per **età** e **valori clinici**. Il cluster 1 rappresenta pazienti **anziani con valori elevati**, il cluster 2 **giovani con valori migliori**.
+
+___
+- **Punto 8**:Applicare PCA alle variabili standardizzate:
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Seleziono le variabili quantitative
+dati_quant <- dati[, c("Eta", "BMI", "AttivitaFisica", "Pressione", "Colesterolo", "Glicemia")]
+
+# Standardizzo
+DataScaled <- scale(dati_quant)
+
+# Applico PCA
+pca <- prcomp(DataScaled)
+
+# Sommario della PCA
+summary(pca)
+```
+
+
+     **8.1** Quanta variabilità viene spiegata dalle prime due componenti?
+
+## 💥 Risposta:
+
+**Variabilità spiegata dalle prime due componenti**:
+
+| Componente | Varianza spiegata | Varianza cumulata |
+|------------|-------------------|-------------------|
+| **PC1**    | 52.89%            | 52.89%            |
+| **PC2**    | 19.07%            | **71.96%**        |
+
+Le prime due componenti principali spiegano complessivamente il **71.96%** della variabilità totale dei dati.
+
+- La **PC1** da sola spiega più della metà della variabilità (52.89%).
+- La **PC2** aggiunge un ulteriore 19.07%.
+- Le restanti 4 componenti spiegano solo il 28.04% residuo.
+
+     **8.2** Costruire un grafico delle prime due componenti e colorarlo rispetto ai cluster ottenuti in precedenza; i gruppi sembrano ben separati?
+
+## ✏️ Svolgimento:
+```{r}
+# Carico il dataset e rimuovo i NA
+dati <- read.csv("salute.csv", sep = "|")
+dati <- na.omit(dati)
+
+# Seleziono le variabili quantitative
+dati_quant <- dati[, c("Eta", "BMI", "AttivitaFisica", "Pressione", "Colesterolo", "Glicemia")]
+
+# Standardizzo
+DataScaled <- scale(dati_quant)
+
+# PCA
+pca <- prcomp(DataScaled)
+
+# Riprendo i cluster dal punto 7 (taglio a k=2)
+distanze <- dist(DataScaled, method = "euclidean")
+hcluster <- hclust(distanze, method = "ward.D2")
+cluster <- cutree(hcluster, k = 2)
+
+# Grafico delle prime due componenti colorato per cluster
+plot(pca$x[,1], pca$x[,2],
+     col = cluster,
+     pch = 19,
+     xlab = "PC1",
+     ylab = "PC2",
+     main = "PCA - Prime due componenti per cluster")
+
+# Legenda
+legend("topright",
+       legend = c("Cluster 1", "Cluster 2"),
+       col = 1:2,
+       pch = 19,
+       title = "Cluster")
+```
+
+## 💥 Risposta 
+
+**Grafico delle prime due componenti principali** (PC1 vs PC2) colorato per cluster:
+
+- **Asse x**: PC1 (52.89% della varianza)
+- **Asse y**: PC2 (19.07% della varianza)
+- **Colori**: Cluster 1 (nero) e Cluster 2 (rosso)
+
+**Osservazioni**:
+
+- I due cluster sono **ben separati** lungo la **PC1** (asse orizzontale).
+- Il **Cluster 1** (nero) si trova sul lato **sinistro** della PC1, mentre il **Cluster 2** (rosso) si trova sul lato **destro**.
+- La separazione è netta, con pochi punti di sovrapposizione, indicando che i cluster individuati dal clustering gerarchico corrispondono a gruppi distinti anche nello spazio delle componenti principali.
+- La **PC2** (asse verticale) mostra una separazione meno marcata, ma contribuisce a distinguere ulteriormente i due gruppi.
+
+**Conclusione**:
+
+I gruppi ottenuti dal clustering gerarchico sono **ben separati** nello spazio delle prime due componenti principali, confermando che la suddivisione in 2 cluster è appropriata e che i cluster rappresentano gruppi di pazienti con caratteristiche distintive.
